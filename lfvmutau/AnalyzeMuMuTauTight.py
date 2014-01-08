@@ -20,20 +20,18 @@ import math
 #args = parser.parse_args()
 #print args
 Isiso = bool ('true' in os.environ['iso'])
-preselection = False  ##preselection or signal region (preselection = false)
-Twomu = True
-Twojets = False
+preselection = bool ('preselection' in os.environ['selection']) #preselection or signal region (preselection = false)
+Twojets = True
 if preselection == False:
 	Twojets = True
 vbfMassCut500 = True
-if vbfMassCut500 == True:
-	vbfMassCutstr = "500 GeV"
-else:
-	vbfMassCutstr = "400 GeV"
+#if vbfMassCut500 == True:
+#	vbfMassCutstr = "500 GeV"
+#else:
+#	vbfMassCutstr = "400 GeV"
 print "Preselection: " + str(preselection)
-print "Two Muon Selection: " + str(Twomu)
 print "Is Isolation applied: " + str(Isiso)
-print "vbfMassCut is: " + vbfMassCutstr
+#print "vbfMassCut is: " + vbfMassCutstr
 print "Two Jets required: " + str(Twojets)
 ###### Because I need to add a bunch more branches to the ntuple...
 from math import sqrt, pi
@@ -172,7 +170,8 @@ def getFakeRateFactor(row):
     return fakeRateFactor
 
 class AnalyzeMuMuTauTight(MegaBase):
-    tree = 'New_Tree'	
+    #tree = 'New_Tree'	
+    tree = 'mmt/final/Ntuple'
     def __init__(self, tree, outfile, **kwargs):
         super(AnalyzeMuMuTauTight, self).__init__(tree, outfile, **kwargs)
         # Use the cython wrapper
@@ -265,18 +264,18 @@ class AnalyzeMuMuTauTight(MegaBase):
 	    self.book(names[x], "tDecayMode", "" , 11,  -0.5 , 10.5)
 
 ### vbf ###
-#            self.book(names[x], "vbfJetVeto30", "central jet veto for vbf", 5, -0.5, 4.5)
-#	    self.book(names[x], "vbfJetVeto20", "", 5, -0.5, 4.5)
-#	    self.book(names[x], "vbfMVA", "", 100, 0,0.5)
-#	    self.book(names[x], "vbfMass", "", 200,0,1000.0)
-#	    self.book(names[x], "vbfDeta", "", 100, -0.5,10.0)
-#            self.book(names[x], "vbfj1eta","",100,-2.5,2.5)
-#	    self.book(names[x], "vbfj2eta","",100,-2.5,2.5)
-#	    self.book(names[x], "vbfVispt","",100,0,200)
-#	    self.book(names[x], "vbfHrap","",100,0,5.0)
-#	    self.book(names[x], "vbfDijetrap","",100,0,5.0)
-#	    self.book(names[x], "vbfDphihj","",100,0,4)
-#            self.book(names[x], "vbfDphihjnomet","",100,0,4)
+            self.book(names[x], "vbfJetVeto30", "central jet veto for vbf", 5, -0.5, 4.5)
+	    self.book(names[x], "vbfJetVeto20", "", 5, -0.5, 4.5)
+	    self.book(names[x], "vbfMVA", "", 100, 0,0.5)
+	    self.book(names[x], "vbfMass", "", 200,0,1000.0)
+	    self.book(names[x], "vbfDeta", "", 100, -0.5,10.0)
+            self.book(names[x], "vbfj1eta","",100,-2.5,2.5)
+	    self.book(names[x], "vbfj2eta","",100,-2.5,2.5)
+	    self.book(names[x], "vbfVispt","",100,0,200)
+	    self.book(names[x], "vbfHrap","",100,0,5.0)
+	    self.book(names[x], "vbfDijetrap","",100,0,5.0)
+	    self.book(names[x], "vbfDphihj","",100,0,4)
+            self.book(names[x], "vbfDphihjnomet","",100,0,4)
 	     
 
     def correction(self, row):
@@ -366,18 +365,18 @@ class AnalyzeMuMuTauTight(MegaBase):
         histos[name+'/tPhiMETPhiType1'].Fill(deltaPhi(row.tPhi,row.type1_pfMetPhi),weight)
 	histos[name+'/tDecayMode'].Fill(row.tDecayMode, weight)
 
-#	histos[name+'/vbfJetVeto30'].Fill(row.vbfJetVeto30, weight)
-#     	histos[name+'/vbfJetVeto20'].Fill(row.vbfJetVeto20, weight)
-#        histos[name+'/vbfMVA'].Fill(row.vbfMVA, weight)
-#        histos[name+'/vbfMass'].Fill(row.vbfMass, weight)
-#        histos[name+'/vbfDeta'].Fill(row.vbfDeta, weight)
-#        histos[name+'/vbfj1eta'].Fill(row.vbfj1eta, weight)
-#        histos[name+'/vbfj2eta'].Fill(row.vbfj2eta, weight)
-#        histos[name+'/vbfVispt'].Fill(row.vbfVispt, weight)
-#        histos[name+'/vbfHrap'].Fill(row.vbfHrap, weight)
-#        histos[name+'/vbfDijetrap'].Fill(row.vbfDijetrap, weight)
-#        histos[name+'/vbfDphihj'].Fill(row.vbfDphihj, weight)
-#        histos[name+'/vbfDphihjnomet'].Fill(row.vbfDphihjnomet, weight)
+	histos[name+'/vbfJetVeto30'].Fill(row.vbfJetVeto30, weight)
+     	histos[name+'/vbfJetVeto20'].Fill(row.vbfJetVeto20, weight)
+        histos[name+'/vbfMVA'].Fill(row.vbfMVA, weight)
+        histos[name+'/vbfMass'].Fill(row.vbfMass, weight)
+        histos[name+'/vbfDeta'].Fill(row.vbfDeta, weight)
+        histos[name+'/vbfj1eta'].Fill(row.vbfj1eta, weight)
+        histos[name+'/vbfj2eta'].Fill(row.vbfj2eta, weight)
+        histos[name+'/vbfVispt'].Fill(row.vbfVispt, weight)
+        histos[name+'/vbfHrap'].Fill(row.vbfHrap, weight)
+        histos[name+'/vbfDijetrap'].Fill(row.vbfDijetrap, weight)
+        histos[name+'/vbfDphihj'].Fill(row.vbfDphihj, weight)
+        histos[name+'/vbfDphihjnomet'].Fill(row.vbfDphihjnomet, weight)
 
 
 
@@ -385,21 +384,23 @@ class AnalyzeMuMuTauTight(MegaBase):
 
 
     def presel(self, row):
-	if not row.isoMu24eta2p1Pass:
-            return False
+	#if not row.isoMu24eta2p1Pass:
+         #   return False
+	if not row.mu17mu8Pass:
+	    return False
         return True
     
     def twojets(self,row):
-	#if Twojets == True and row.vbfNJets<2:
-	#	return False
+	if Twojets == True and row.vbfNJets<2:
+		return False
 	return True    	
     def kinematics(self, row):
-        if row.m1Pt < 30:
+        if row.m1Pt < 20:
             return False
  	#print "passed m1Pt"
         if abs(row.m1Eta) >= 2.1:
             return False
-        if row.m2Pt < 30:
+        if row.m2Pt < 20:
             return False
         if abs(row.m2Eta) >= 2.1:
             return False
@@ -437,31 +438,30 @@ class AnalyzeMuMuTauTight(MegaBase):
        return True	
 
     def vbf(self,row):
-#	if(abs(row.vbfDeta)<3.5):
-#	    return False
-#	if vbfMassCut500 == True:
-#        	if row.vbfMass < 500:
-#	    		return False
-#	else:
-#		if row.vbfMass < 400:
-#			return True
+	if(abs(row.vbfDeta)<3.5):
+	    return False
+	if vbfMassCut500 == True:
+        	if row.vbfMass < 500:
+	    		return False
+	else:
+		if row.vbfMass < 400:
+			return False
 	if row.jetVeto30 < 2:
 	    return False
-	#print "passed vbf"
-#	if row.vbfJetVeto30 > 0:
-#	    return False
-        return True
+	if row.vbfJetVeto30 > 0:
+	    return False
+	return True
 
     def loosevbf(self,row):
-#	if(abs(row.vbfDeta)<2.0):
-#            return False
-#	if vbfMassCut500 == True:
-#        	if row.vbfMass < 200:
-#            		return False
-        #if row.jetVeto20 < 2:
-         #   return False
-#        if row.vbfJetVeto30 > 0:
-#            return False
+	if(abs(row.vbfDeta)<2.0):
+            return False
+	if vbfMassCut500 == True:
+        	if row.vbfMass < 200:
+            		return False
+        if row.jetVeto20 < 2:
+            return False
+        if row.vbfJetVeto30 > 0:
+            return False
         return True
 
     def oppositesign(self,row):
@@ -506,8 +506,8 @@ class AnalyzeMuMuTauTight(MegaBase):
 	    if not self.presel(row):
 		continue
 	    #print "passed presel"
-	    if not self.twojets(row):
-		continue
+	    #if not self.twojets(row):
+#		continue
 	    #print "passed twojets"
             if not self.kinematics(row):
                 continue
@@ -553,14 +553,19 @@ class AnalyzeMuMuTauTight(MegaBase):
 		tightcutvbf = self.vbf(row)
 	    	
 	    if loosecutvbf:
+		if not self.twojets(row):
+			continue
 		if self.lowMt(row):
                         if self.obj1_antiiso(row) and self.obj2_mediso(row) and self.oppositesign(row):
                                 self.fill_histos(row,'antiisomuonvbf')
-	    if tightcutvbf:	
+	    #if tightcutvbf:	
+	    if loosecutvbf:
+ 		if not self.twojets(row):
+			continue
 		#print "passed tightcutvbf"
 		if self.lowMt(row):
                 	if obj1iso and obj2iso and self.oppositesign(row):
-				print "pssed iso,os. Ready to fill"
+				#print "pssed iso,os. Ready to fill"
                         	self.fill_histos(row,'vbf')
                 	if obj1iso and obj2iso and not self.oppositesign(row):
                         	self.fill_histos(row,'ssvbf')
