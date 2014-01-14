@@ -15,6 +15,7 @@ import FinalStateAnalysis.TagAndProbe.H2TauCorrections as H2TauCorrections
 import FinalStateAnalysis.TagAndProbe.PileupWeight as PileupWeight
 import ROOT
 import math
+import array
 #import argparse
 #parser = argparse.ArgumentParser()
 #args = parser.parse_args()
@@ -22,7 +23,10 @@ import math
 optimized = bool('true' in os.environ['optimized'])
 preselection = bool('preselection' in os.environ['selection'])
 jetcorr = os.environ['jetcorrection']
+if preselection == True:
+	optimized=False
 Isiso = bool('true' in os.environ['iso'])
+wjets = bool('true' in os.environ['wjets'])
 Twomu = False
 Twojets = True
 if preselection == False:
@@ -35,6 +39,7 @@ vbfMassCut500 = True
 is7TeV = bool('7TeV' in os.environ['jobid'])
 isPU1signal = bool ('false' in os.environ['PU'])
 isEmbed = bool ('true' in os.environ['embed'])
+treeSkim = bool('true' in os.environ['treeSkim'])
 isZtt = bool ('true' in os.environ['Ztt'])
 print "Is 7TeV:", is7TeV
 print "Is PU1 signal:", isPU1signal
@@ -55,6 +60,26 @@ def deltaPhi(phi1, phi2):
       return PHI
   else:
       return 2*pi-PHI
+
+def collMass_type1(row,type1_pfMetEt,type1_pfMetPhi):
+        taupx = row.tPt*math.cos(row.tPhi)
+        taupy = row.tPt*math.sin(row.tPhi)
+        taupt=  row.tPt
+
+        metpx = type1_pfMetEt*math.cos(type1_pfMetPhi)
+        metpy = type1_pfMetEt*math.sin(type1_pfMetPhi)
+        met = type1_pfMetEt
+
+        METproj= abs(metpx*taupx+metpy*taupy)/taupt
+
+        xth=taupt/(taupt+METproj)
+        den=math.sqrt(xth)
+
+        mass=row.m_t_Mass/den
+
+        return mass
+
+
 
 def fullMT(met,mupt,taupt, metphi, muphi, tauphi):
 	mux=mupt*math.cos(muphi)
@@ -150,13 +175,13 @@ if not is7TeV:
 
 
 # ApplyFakeRateMethod
-def getFakeRateFactor(row):
-    if preselection == True:
-    	mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/preselection/isotrue/AnalyzeMuMuTauTight/"
-	mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/preselection/isofalse/AnalyzeMuMuTauTight/"
-    if preselection == False:
-        mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/signal/isotrue/AnalyzeMuMuTauTight/"
-        mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/signal/isofalse/AnalyzeMuMuTauTight/"
+def getFakeRateFactor(row,fakeName='Central'):
+#    if preselection == True:
+    mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/preselection/isotrue/AnalyzeMuMuTauTight/"
+    mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/preselection/isofalse/AnalyzeMuMuTauTight/"
+#    if preselection == False:
+#        mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/signal/isotrue/AnalyzeMuMuTauTight/"
+#        mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/signal/isofalse/AnalyzeMuMuTauTight/"
     #mumuidiso_dir = "MuMuIdIso/"
     #mumuid_dir = "MuMuId/"
     data_file_str = "datammt_2012.root"
@@ -168,25 +193,58 @@ def getFakeRateFactor(row):
     data_file_id = ROOT.TFile(mumuid_dir+data_file_str)
     histoIdIso = data_file_idiso.Get("vbf/tJetPt").Clone()
     histoId = data_file_id.Get("vbf/tJetPt").Clone()
+    i = 0
+    bincount = -1
+    binning = array.array('d',[])
+    while (i <= 480):
+    	if i < 70:
+        	binning.append(i)
+                i = i+2
+        elif i< 100:
+                binning.append(i)
+                i = i+5
+        elif i<120:
+        	binning.append(i)
+                i = i+10
+        else:
+        	binning.append(i)
+                i = i+20
+        bincount = bincount+1
+    #print bincount
+    #print len(binning)
+    #print binning
+    histoIdIsoRebin = histoIdIso.Rebin(bincount,"histoIdIsoRebin",binning)
+    histoIdRebin = histoId.Rebin(bincount,"histoIdRebin",binning)
+    histo_ftau = histoIdIsoRebin.Clone()
+    histo_ftau.Divide(histoIdRebin)
+    
+ 
     #histoIdIso.Rebin(binwidth)
     #histoId.Rebin(binwidth)
     #histoIdIso = zjets_file_idiso.Get("vbf/tJetPt").Clone()
     #histoId = zjets_file_id.Get("vbf/tJetPt").Clone()
-    if histoId.GetBinContent(histoId.FindBin(row.tJetPt)) == 0:
+    if histoIdRebin.GetBinContent(histoId.FindBin(row.tJetPt)) == 0:
 	fTauIso = 0
     else:
-    	fTauIso = histoIdIso.GetBinContent(histoIdIso.FindBin(row.tJetPt))/histoId.GetBinContent(histoId.FindBin(row.tJetPt))
-    
+    	fTauIso = histo_ftau.GetBinContent(histo_ftau.FindBin(row.tJetPt))
+    	if fakeName=='Down':
+		fTauIso = fTauIso - histo_ftau.GetBinError(histo_ftau.FindBin(row.tJetPt))
+		if fTauIso < 0:
+			fTauIso = 0
+	elif fakeName=='Up':
+                fTauIso = fTauIso + histo_ftau.GetBinError(histo_ftau.FindBin(row.tJetPt))
     #print "fTauIso: " + str(fTauIso)
     #print "tauJetPt: " + str(row.tJetPt)
     fakeRateFactor = fTauIso/(1-fTauIso)
     return fakeRateFactor
 
-class AnalyzeMuTauTightvbfNew(MegaBase):
-    #tree = 'New_Tree'	
-    tree = 'mt/final/Ntuple'
+class AnalyzeMuTauTightvbfNewJes(MegaBase):
+    if treeSkim == True:
+	tree = 'New_Tree'
+    else:
+    	tree = 'mt/final/Ntuple'
     def __init__(self, tree, outfile, **kwargs):
-        super(AnalyzeMuTauTightvbfNew, self).__init__(tree, outfile, **kwargs)
+        super(AnalyzeMuTauTightvbfNewJes, self).__init__(tree, outfile, **kwargs)
         # Use the cython wrapper
         self.tree = MuTauTree.MuTauTree(tree)
         self.out = outfile
@@ -195,8 +253,9 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         self.is7TeV = '7TeV' in os.environ['jobid']
 
     def begin(self):
+ #       names=["gg0","gg1","vbf","highMtgg0","highMtgg1","highMtvbf", "hightMtvbf","lowtMtvbf","antiisomuongg0","antiisomuongg1","antiisomuonvbf","highMtantiisomuonvbf","antiisotaugg0","antiisotaugg1","antiisotauvbf","highMtssantiisotauvbf","antiisotauhighMtvbf","highMtssantiisomuonvbf","ssgg0","ssgg1","highMtssgg0", "highMtssgg1","ssvbf","highMtssvbf", "ssantiisomuongg0", "ssantiisomuongg1", "ssantiisomuonvbf", "ssantiisomuonlowmMtvbf","sslowmMtvbf","lowmMtvbf","ttbarcontrolvbf","ztautaucontrolvbf","highMtztautaucontrolvbf","antiisomuonztautaucontrolvbf","highMtssztautaucontrolvbf","ssantiisomuonztautaucontrolvbf","ssztautaucontrolvbf"]
+        names=["gg0","gg1","vbf","highMtgg0","highMtgg1","highMtvbf", "hightMtvbf","lowtMtvbf","antiisomuongg0","antiisomuongg1","antiisomuonvbf","highMtantiisomuonvbf","antiisotaugg0","antiisotaugg1","antiisotauvbf","antiisotauvbfdown","antiisotauvbfup","highMtssantiisotauvbf","antiisotauhighMtvbf","highMtssantiisomuonvbf","ssgg0","ssgg1","highMtssgg0", "highMtssgg1","ssvbf","highMtssvbf", "ssantiisomuongg0", "ssantiisomuongg1", "ssantiisomuonvbf", "ssantiisomuonlowmMtvbf","sslowmMtvbf","lowmMtvbf","ttbarcontrolvbf","ztautaucontrolvbf","highMtztautaucontrolvbf","antiisomuonztautaucontrolvbf","highMtssztautaucontrolvbf","ssantiisomuonztautaucontrolvbf","ssztautaucontrolvbf"]
 
-        names=["gg","vbf","highMtgg","highMtvbf", "hightMtvbf","lowtMtvbf","antiisomuongg","antiisomuonvbf","antiisotaugg","antiisotauvbf","highMtssantiisotauvbf","antiisotauhighMtvbf","highMtssantiisomuonvbf","ssgg","highMtssgg","ssvbf","highMtssvbf", "ssantiisomuongg","ssantiisomuonvbf", "ssantiisomuonlowmMtvbf","sslowmMtvbf","lowmMtvbf","ttbarcontrolvbf","ztautaucontrolvbf","highMtztautaucontrolvbf","antiisomuonztautaucontrolvbf","highMtssztautaucontrolvbf","ssantiisomuonztautaucontrolvbf","ssztautaucontrolvbf"]
         namesize = len(names)
 	for x in range(0,namesize):
 
@@ -231,6 +290,10 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
             self.book(names[x],"fullMT_type1","fullMT_type1",500,0,500);
             self.book(names[x],"fullMT_jes_plus","fullMT_jes_plus",500,0,500);
             self.book(names[x],"fullMT_jes_minus","fullMT_jes_minus",500,0,500);
+	    self.book(names[x],"collMass_type1","collMass_type1",500,0,500);
+	    self.book(names[x],"collMass_jes_plus","collMass_jes_minus",500,0,500);
+	    self.book(names[x],"collMass_jes_minus","collMass_jes_minus",500,0,500);
+
             self.book(names[x],"fullPT_mva","fullPT_mva",500,0,500);
             self.book(names[x],"fullPT_type1","fullPT_type1",500,0,500);
             self.book(names[x],"fullPT_jes_plus","fullPT_jes_plus",500,0,500);
@@ -278,9 +341,9 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
             self.book(names[x], "tPhiMETPhiMVA", "", 100, 0,4)
             self.book(names[x], "mPhiMETPhiType1", "", 100, 0,4)
             self.book(names[x], "tPhiMETPhiType1", "", 100, 0,4)
-            self.book(names[x], "mPhiMETPhiTjes_plus", "", 100, 0,4)
+            self.book(names[x], "mPhiMETPhijes_plus", "", 100, 0,4)
             self.book(names[x], "tPhiMETPhijes_plus", "", 100, 0,4)
-            self.book(names[x], "mPhiMETPhiTjes_minus", "", 100, 0,4)
+            self.book(names[x], "mPhiMETPhijes_minus", "", 100, 0,4)
             self.book(names[x], "tPhiMETPhijes_minus", "", 100, 0,4)
 	    self.book(names[x], "tDecayMode", "" , 11,  -0.5 , 10.5)
 
@@ -327,17 +390,17 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
     def correction(self, row):
         return mc_corrector(row)
     
-    def fakeRateMethod(self,row):
-	return getFakeRateFactor(row)
+    def fakeRateMethod(self,row,fakeName='Central'):
+	return getFakeRateFactor(row,fakeName)
 
-    def fill_histos(self, row,name='gg', fakeRate = False):
+    def fill_histos(self, row,name='gg', fakeRate = False,fakeName = 'Central'):
         histos = self.histograms
 	if isEmbed == True:
 		weight = row.EmbPtWeight
 	else:
 		weight = self.correction(row)
 	if fakeRate == True:
-		weight = weight * self.fakeRateMethod(row)
+		weight = weight * self.fakeRateMethod(row,fakeName)
         histos[name+'/weight'].Fill(weight)
         histos[name+'/weight_nopu'].Fill(self.correction(row))
 	histos[name+'/EmbPtWeight'].Fill(row.EmbPtWeight)
@@ -367,10 +430,13 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         histos[name+'/fullMT_type1'].Fill(fullMT(row.type1_pfMetEt,row.mPt,row.tPt,row.type1_pfMetPhi, row.mPhi, row.tPhi),weight)
         histos[name+'/fullMT_jes_plus'].Fill(fullMT(row.pfMet_jes_plus_Et,row.mPt,row.tPt,row.pfMet_jes_plus_Phi, row.mPhi, row.tPhi),weight)
         histos[name+'/fullMT_jes_minus'].Fill(fullMT(row.pfMet_jes_minus_Et,row.mPt,row.tPt,row.pfMet_jes_minus_Phi, row.mPhi, row.tPhi),weight)
+	histos[name+'/collMass_type1'].Fill(collMass_type1(row,row.type1_pfMetEt,row.type1_pfMetPhi),weight)
+	histos[name+'/collMass_jes_plus'].Fill(collMass_type1(row,row.pfMet_jes_plus_Et,row.pfMet_jes_plus_Phi),weight)
+        histos[name+'/collMass_jes_minus'].Fill(collMass_type1(row,row.pfMet_jes_minus_Et,row.pfMet_jes_minus_Phi),weight)
         histos[name+'/fullPT_mva'].Fill(fullPT(row.mva_metEt,row.mPt,row.tPt,row.mva_metPhi, row.mPhi, row.tPhi),weight)
         histos[name+'/fullPT_type1'].Fill(fullPT(row.type1_pfMetEt,row.mPt,row.tPt,row.type1_pfMetPhi, row.mPhi, row.tPhi),weight) 
-        histos[name+'/fullPT_type1_jes_plus'].Fill(fullPT(row.pfMet_jes_plus_Et,row.mPt,row.tPt,row.pfMet_jes_plus_Phi, row.mPhi, row.tPhi),weight)
-        histos[name+'/fullPT_type1_jes_minus'].Fill(fullPT(row.pfMet_jes_minus_Et,row.mPt,row.tPt,row.pfMet_jes_minus_Phi, row.mPhi, row.tPhi),weight)
+        histos[name+'/fullPT_jes_plus'].Fill(fullPT(row.pfMet_jes_plus_Et,row.mPt,row.tPt,row.pfMet_jes_plus_Phi, row.mPhi, row.tPhi),weight)
+        histos[name+'/fullPT_jes_minus'].Fill(fullPT(row.pfMet_jes_minus_Et,row.mPt,row.tPt,row.pfMet_jes_minus_Phi, row.mPhi, row.tPhi),weight)
 
 	histos[name+'/type1_pfMetEt'].Fill(row.type1_pfMetEt,weight)
         histos[name+'/pfMet_jes_plus_Et'].Fill(row.pfMet_jes_plus_Et,weight)
@@ -410,11 +476,11 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         histos[name+'/mPhiMETPhiMVA'].Fill(deltaPhi(row.mPhi,row.mva_metPhi),weight)
         histos[name+'/tPhiMETPhiMVA'].Fill(deltaPhi(row.tPhi,row.mva_metPhi),weight)
         histos[name+'/mPhiMETPhiType1'].Fill(deltaPhi(row.mPhi,row.type1_pfMetPhi),weight)
-	histos[name+'/mPhiMETPhijes_plus'].Fill(deltaPhi(row.mPhi,row.type1_pfMet_jes_plus_Phi),weight)
-        histos[name+'/mPhiMETPhijes_minus'].Fill(deltaPhi(row.mPhi,row.type1_pfMet_jes_minus_Phi),weight)
+	histos[name+'/mPhiMETPhijes_plus'].Fill(deltaPhi(row.mPhi,row.pfMet_jes_plus_Phi),weight)
+        histos[name+'/mPhiMETPhijes_minus'].Fill(deltaPhi(row.mPhi,row.pfMet_jes_minus_Phi),weight)
         histos[name+'/tPhiMETPhiType1'].Fill(deltaPhi(row.tPhi,row.type1_pfMetPhi),weight)
-        histos[name+'/tPhiMETPhijes_plus'].Fill(deltaPhi(row.tPhi,row.type1_pfMet_jes_plus_Phi),weight)
-        histos[name+'/tPhiMETPhijes_minus'].Fill(deltaPhi(row.tPhi,row.type1_pfMet_jes_minus_Phi),weight)
+        histos[name+'/tPhiMETPhijes_plus'].Fill(deltaPhi(row.tPhi,row.pfMet_jes_plus_Phi),weight)
+        histos[name+'/tPhiMETPhijes_minus'].Fill(deltaPhi(row.tPhi,row.pfMet_jes_minus_Phi),weight)
 	histos[name+'/tDecayMode'].Fill(row.tDecayMode, weight)
 	histos[name+'/vbfJetVeto30'].Fill(row.vbfJetVeto30, weight)
      	histos[name+'/vbfJetVeto20'].Fill(row.vbfJetVeto20, weight)
@@ -459,9 +525,9 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
     def getvbfNJets(self,row):
 	if jetcorr=="none":
 		return row.vbfNJets
-	elif jetcorr=="jesplus"
+	elif jetcorr=="jesplus":
 		return row.vbfNJetsjes_plus
-	elif jetcorr=="jesminus"
+	elif jetcorr=="jesminus":
 		return row.vbfNJetsjes_minus
 	
     def gettMtToPfMet(self,row):
@@ -471,6 +537,20 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 		return row.tMtToPfMet_jes_plus
 	elif jetcorr=="jesminus":
 		return row.tMtToPfMet_jes_minus
+    def getmPhiMETPhiType1(self,row):
+	if jetcorr =="none":
+                return deltaPhi(row.mPhi,row.type1_pfMetPhi)
+        elif jetcorr=="jesplus":
+                return deltaPhi(row.mPhi,row.pfMet_jes_plus_Phi)
+        elif jetcorr=="jesminus":
+                return deltaPhi(row.mPhi,row.pfMet_jes_minus_Phi)
+    def gettPhiMETPhiType1(self,row):
+        if jetcorr =="none":
+                return deltaPhi(row.tPhi,row.type1_pfMetPhi)
+        elif jetcorr=="jesplus":
+                return deltaPhi(row.tPhi,row.pfMet_jes_plus_Phi)
+        elif jetcorr=="jesminus":
+                return deltaPhi(row.tPhi,row.pfMet_jes_minus_Phi)
 
     def getmMtToPfMet(self,row):
         if jetcorr =="none":
@@ -482,7 +562,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
     def getvbfDeta(self,row):
 	if jetcorr=="none":
 		return row.vbfDeta
-	elif jetcorr="jesplus":
+	elif jetcorr=="jesplus":
 		return row.vbfDetajes_plus
 	elif jetcorr=="jesminus":
 		return row.vbfDetajes_minus
@@ -490,7 +570,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
     def getvbfMass(self,row):
         if jetcorr=="none":
                 return row.vbfMass
-        elif jetcorr="jesplus":
+        elif jetcorr=="jesplus":
                 return row.vbfMassjes_plus
         elif jetcorr=="jesminus":
                 return row.vbfMassjes_minus
@@ -498,7 +578,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
     def getjetVeto30(self,row):
         if jetcorr=="none":
                 return row.jetVeto30
-        elif jetcorr="jesplus":
+        elif jetcorr=="jesplus":
                 return row.jetVeto30jes_plus
         elif jetcorr=="jesminus":
                 return row.jetVeto30jes_minus
@@ -506,7 +586,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
     def getvbfJetVeto30(self,row):
         if jetcorr=="none":
                 return row.vbfJetVeto30
-        elif jetcorr="jesplus":
+        elif jetcorr=="jesplus":
                 return row.vbfJetVeto30jes_plus
         elif jetcorr=="jesminus":
                 return row.vbfJetVeto30jes_minus
@@ -536,7 +616,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 		if self.gettMtToPfMet(row)>20:
 			return False
 	else:
-		if self.gettMtToPfMet(row) > 30:
+		if self.gettMtToPfMet(row) > 35:
 	    		return False
 	return True
 
@@ -561,8 +641,9 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         return True
 
     def mMtgg(self,row):
-	if self.getmMtToPfMet(row) < 30:
-		return False	
+	if optimized == False:
+		if self.getmMtToPfMet(row) < 30:
+			return False	
 	return True	
     def lowm_t_Mass(self,row):
 	if row.m_t_Mass > 60:
@@ -573,13 +654,48 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 	if row.m_t_DR > 2:
 		return False
 	return True
-    def ggtight(self,row):
-       if row.mPt < 50:
-           return False
+    def ggtight(self,row, jets):
        if row.LT<75:
           return False
-       if (deltaPhi(row.tPhi,row.mva_metPhi)>0.5):
-          return False
+       if optimized == True and jets == 0:
+          #if self.getmPhiMETPhiType1(row) < 2.5:
+	   #	return False
+	  #if self.gettPhiMETPhiType1(row) > 0.3:
+	#	return False
+	  if deltaPhi(row.mPhi, row.tPhi) < 2.7:
+		return False
+	  if row.mPt < 45:
+		return False
+	  if row.tPt < 35:
+		return False
+	  if self.gettMtToPfMet(row) > 50:
+		return False
+	  if self.getjetVeto30(row)!=0:
+		return False
+       if optimized == True and jets ==1:
+	  if self.getjetVeto30(row)!=1:
+		return False
+	  if self.gettPhiMETPhiType1(row) > 0.3:
+		return False
+	  if row.mPt < 35:
+		return False
+	  if row.tPt < 40:
+		return False
+          if self.gettMtToPfMet(row) > 35:
+		return False
+
+
+       else:
+       		if row.mPt < 50:
+          	 	return False
+       		if (deltaPhi(row.tPhi,row.mva_metPhi)>0.5):
+          		return False
+		if jets==1:
+			if self.getjetVeto30(row)!=1:
+				return False
+		if jets==0:
+			if self.getjetVeto30(row)!=0:
+				return False
 #       if (deltaPhi(row.mPhi,row.tPhi)<2.):    
 #          return False
        return True	
@@ -611,14 +727,18 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
             return False
         return True
     def optimizedvbf(self,row):
-	if row.mPt < 45:
+	if row.mPt < 30:
 		return False
-	if row.tPt < 45:
+	if row.tPt < 40:
 		return False
 	if (abs(row.vbfDeta)) < 3.5:
 		return False
-	if row.vbfMass < 600:
+	if row.vbfMass < 550:
 		return False
+        if self.getjetVeto30(row) < 2:
+            return False
+        if self.getvbfJetVeto30(row) > 0:
+            return False
 	return True
     def oppositesign(self,row):
 	if row.mCharge*row.tCharge!=-1:
@@ -640,13 +760,16 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         if isZtt == True:
                 return (bool (row.isZtautau == 1 ))
         else:
-                return (bool (row.isZtautau == 0))
+                return False
 
 
     def obj1_iso(self, row):
         return bool(row.mRelPFIsoDB <0.12)
-    def obj2_iso(self, row):
-        return  row.tTightIso3Hits
+    def obj2_iso(self, row,isgg=False):
+	if wjets==True and isgg==True:
+        	return  row.tTightIso3Hits
+	else:
+		return row.tTightIso3Hits
 
     def obj2_mediso(self, row):
 	 return row.tMediumIso3Hits
@@ -661,15 +784,22 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 		return False
 	return True
 
-
+    def zerojet(self,row):
+	if row.jetVeto30 == 0:
+		return True
+    def onejet(self,row):
+	if row.jetVeto30 ==1:
+		return True
     def process(self):
         for row in self.tree:
 	    if Isiso == False:
 		obj1iso = True
 		obj2iso = True
+		obj2isogg = True
 	    else:
 		obj1iso = self.obj1_iso(row)
 		obj2iso = self.obj2_iso(row)
+		obj2isogg = self.obj2_iso(row,True)
 	    
 	    if not self.presel(row):
 		continue
@@ -687,27 +817,47 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
                 	continue	    
 	    
 	    if preselection == True:
-	    	tightcutgg=True
+	    	tightcutgg0=self.zerojet(row)
+		tightcutgg1=self.onejet(row)
 	    else: 
-		tightcutgg = self.ggtight(row)		
-	    if tightcutgg:
+		tightcutgg0 = self.ggtight(row,0)
+		tightcutgg1 = self.ggtight(row,1)		
+	    if tightcutgg0:
 		
 		if self.mMtgg(row):
 			if obj1iso and obj2iso and self.oppositesign(row): 
-	        	        self.fill_histos(row,'gg')
-                	if obj1iso and obj2iso and not self.oppositesign(row):
-                	        self.fill_histos(row,'ssgg')
-                	if self.obj1_antiiso(row) and obj2iso and  self.oppositesign(row):
-                        	self.fill_histos(row,'antiisomuongg')
-			if self.obj1_antiiso(row) and obj2iso and not self.oppositesign(row):
-                        	self.fill_histos(row,'ssantiisomuongg')
+	        	        self.fill_histos(row,'gg0')
+                	if obj1iso and obj2isogg and not self.oppositesign(row):
+                	        self.fill_histos(row,'ssgg0')
+                	if self.obj1_antiiso(row) and obj2isogg and  self.oppositesign(row):
+                        	self.fill_histos(row,'antiisomuongg0')
+			if self.obj1_antiiso(row) and obj2isogg and not self.oppositesign(row):
+                        	self.fill_histos(row,'ssantiisomuongg0')
 			if obj1iso and self.obj2_antiiso(row) and self.oppositesign(row):
-				self.fill_histos(row, 'antiisotaugg')
+				self.fill_histos(row, 'antiisotaugg0')
 		if self.highMt(row):
-                        if obj1iso and obj2iso and self.oppositesign(row):
-                                self.fill_histos(row,'highMtgg')
-                        if obj1iso and obj2iso and not self.oppositesign(row):
-                                self.fill_histos(row,'highMtssgg')
+                        if obj1iso and obj2isogg and self.oppositesign(row):
+                                self.fill_histos(row,'highMtgg0')
+                        if obj1iso and obj2isogg and not self.oppositesign(row):
+                                self.fill_histos(row,'highMtssgg0')
+            if tightcutgg1:
+
+                if self.mMtgg(row):
+                        if obj1iso and obj2isogg and self.oppositesign(row):
+                                self.fill_histos(row,'gg1')
+                        if obj1iso and obj2isogg and not self.oppositesign(row):
+                                self.fill_histos(row,'ssgg1')
+                        if self.obj1_antiiso(row) and obj2isogg and  self.oppositesign(row):
+                                self.fill_histos(row,'antiisomuongg1')
+                        if self.obj1_antiiso(row) and obj2isogg and not self.oppositesign(row):
+                                self.fill_histos(row,'ssantiisomuongg1')
+                        if obj1iso and self.obj2_antiiso(row) and self.oppositesign(row):
+                                self.fill_histos(row, 'antiisotaugg1')
+                if self.highMt(row):
+                        if obj1iso and obj2isogg and self.oppositesign(row):
+                                self.fill_histos(row,'highMtgg1')
+                        if obj1iso and obj2isogg and not self.oppositesign(row):
+                                self.fill_histos(row,'highMtssgg1')
 
 	    if preselection == True:
 	    	loosecutvbf = True
@@ -718,8 +868,10 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 			tightcutvbf = self.optimizedvbf(row)
 		else:
 			tightcutvbf = self.vbf(row)
-	    	
+	    
 	    if loosecutvbf:
+		if not self.twojets(row):
+			continue
 		if self.lowMt(row):
                         if self.obj1_antiiso(row) and self.obj2_mediso(row) and self.oppositesign(row):
                                 self.fill_histos(row,'antiisomuonvbf')
@@ -747,13 +899,19 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 				if self.lowm_t_DR(row):
 					self.fill_histos(row,'ssantiisomuonztautaucontrolvbf')
 	                if obj1iso and self.obj2_antiiso(row) and self.oppositesign(row):
-                                self.fill_histos(row, 'antiisotauvbf',True)
+                                self.fill_histos(row, 'antiisotauvbf',True,'Central')
+                                self.fill_histos(row, 'antiisotauvbfdown',True,'Down')
+                                self.fill_histos(row, 'antiisotauvbfup',True,'Up')
+
 
 		if self.highMt(row):
                         if obj1iso and obj2iso and self.oppositesign(row):
                                 self.fill_histos(row,'highMtvbf')
 				if self.lowm_t_DR(row):
 					self.fill_histos(row,'highMtztautaucontrolvbf')
+                        if self.obj1_antiiso(row) and obj2iso and self.oppositesign(row):
+                                self.fill_histos(row,'highMtantiisomuonvbf')
+
                         if obj1iso and obj2iso and not self.oppositesign(row):
                                 self.fill_histos(row,'highMtssvbf')
 				if self.lowm_t_DR(row):
