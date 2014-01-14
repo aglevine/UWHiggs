@@ -43,6 +43,7 @@ is7TeV = bool('7TeV' in os.environ['jobid'])
 isPU1signal = bool ('false' in os.environ['PU'])
 isEmbed = bool ('true' in os.environ['embed'])
 isZtt = bool ('true' in os.environ['Ztt'])
+treeSkim = bool('true' in os.environ['treeSkim'])
 print "Is wjets", wjets
 print "Is 7TeV:", is7TeV
 print "Is PU1 signal:", isPU1signal
@@ -239,8 +240,11 @@ def getFakeRateFactor(row,fakeName='Central'):
     return fakeRateFactor
 
 class AnalyzeMuTauTightvbfNew(MegaBase):
-    tree = 'New_Tree'	
-    #tree = 'mt/final/Ntuple'
+    if treeSkim == True:
+    	tree = 'New_Tree'
+	print "tree set to New_tree"	
+    else:
+    	tree = 'mt/final/Ntuple'
     def __init__(self, tree, outfile, **kwargs):
         super(AnalyzeMuTauTightvbfNew, self).__init__(tree, outfile, **kwargs)
         # Use the cython wrapper
@@ -452,7 +456,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 		if row.tMtToPfMet_Ty1>20:
 			return False
 	else:
-		if row.tMtToPfMet_Ty1 > 30:
+		if row.tMtToPfMet_Ty1 > 35:
 	    		return False
 	return True
 
@@ -494,23 +498,25 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
        if row.LT<75:
           return False
        if optimized == True and jets == 0:
-          if (deltaPhi(row.mPhi,row.type1_pfMetPhi)) < 2.5:
-		print "failing 1"
-	   	return False
-	  if deltaPhi(row.tPhi,row.type1_pfMetPhi) > 0.3:
-		print "failing 2"
+          #if (deltaPhi(row.mPhi,row.type1_pfMetPhi)) < 2.5:
+	#	print "failing 1"
+	 #  	return False
+	  #if deltaPhi(row.tPhi,row.type1_pfMetPhi) > 0.3:
+	#	print "failing 2"
+	#	return False
+	  if deltaPhi(row.mPhi, row.tPhi) <2.7:
 		return False
-	  if row.mPt < 40:
-		print "failing 3"
+	  if row.mPt < 45:
+		#print "failing 3"
 		return False
-	  if row.tPt < 25:
-		print "failing 4"
+	  if row.tPt < 35:
+		#print "failing 4"
 		return False
-	  if row.tMtToPfMet_Ty1 > 10:
-		print "failing 5"
+	  if row.tMtToPfMet_Ty1 > 50:
+		#print "failing 5"
 		return False
           if row.jetVeto30!=0:
-		print "failing 6"
+		#print "failing 6"
 		return False
        if optimized == True and jets ==1:
 	  	
@@ -518,11 +524,11 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
           	return False
           if deltaPhi(row.tPhi,row.type1_pfMetPhi) > 0.3:
                 return False
-          if row.mPt < 40:
+          if row.mPt < 35:
                 return False
-          if row.tPt < 25:
+          if row.tPt < 40:
                 return False
-          if row.tMtToPfMet_Ty1 > 10:
+          if row.tMtToPfMet_Ty1 > 35:
                 return False
 
 
@@ -570,13 +576,13 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
             return False
         return True
     def optimizedvbf(self,row):
-	if row.mPt < 45:
+	if row.mPt < 30:
 		return False
-	if row.tPt < 45:
+	if row.tPt < 40:
 		return False
 	if (abs(row.vbfDeta)) < 3.5:
 		return False
-	if row.vbfMass < 600:
+	if row.vbfMass < 550:
 		return False
 	if row.jetVeto30 < 2:
 		return False
@@ -668,9 +674,9 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 		tightcutgg1 = self.ggtight(row,1)		
 	    if tightcutgg0:
 		if self.mMtgg(row):
-		        print "passed mMtgg"
+		        #print "passed mMtgg"
 			if obj1iso and obj2isogg and self.oppositesign(row): 
-				print "about to fill"
+				#print "about to fill"
 	        	        self.fill_histos(row,'gg0')
                 	if obj1iso and obj2isogg and not self.oppositesign(row):
                 	        self.fill_histos(row,'ssgg0')
