@@ -21,7 +21,7 @@ import math
 #print args
 Isiso = bool ('true' in os.environ['iso'])
 preselection = bool ('preselection' in os.environ['selection']) #preselection or signal region (preselection = false)
-Twojets = True
+Twojets = False
 if preselection == False:
 	Twojets = True
 vbfMassCut500 = True
@@ -152,23 +152,6 @@ if not is7TeV:
     mc_corrector = mc_corrector_2012
 
 
-# ApplyFakeRateMethod
-def getFakeRateFactor(row):
-    mumuidiso_dir = "MuMuIdIsoInc/"
-    mumuid_dir = "MuMuIdInc/"
-    data_file_str = "data_2012.root"
-    data_file_idiso = ROOT.TFile(mumuidiso_dir+data_file_str)
-    data_file_id = ROOT.TFile(mumuid_dir+data_file_str)
-    histoIdIso = data_file_idiso.Get("vbf/tJetPt").Clone()
-    histoId = data_file_id.Get("vbf/tJetPt").Clone()
-    if histoId.GetBinContent(histoId.FindBin(row.tJetPt)) == 0:
-	fTauIso = 0
-    else:
-    	fTauIso = histoIdIso.GetBinContent(histoIdIso.FindBin(row.tJetPt))/histoId.GetBinContent(histoId.FindBin(row.tJetPt))
-    #print "fTauIso: " + str(fTauIso)
-    fakeRateFactor = fTauIso/(fTauIso-1)
-    return fakeRateFactor
-
 class AnalyzeMuMuTauTight(MegaBase):
     #tree = 'New_Tree'	
     tree = 'mmt/final/Ntuple'
@@ -239,6 +222,8 @@ class AnalyzeMuMuTauTight(MegaBase):
             self.book(names[x], "m2_t_DPhi", "Muon + Tau DPhi", 100, 0, 4)
             self.book(names[x], "m2_t_SS", "Muon + Tau SS", 5, -2, 2)
             self.book(names[x], "m2_t_ToMETDPhi_Ty1", "Muon Tau DPhi to MET", 100, 0, 4)
+
+	    self.book(names[x], "m1_m2_Mass", "DiMuon Mass", 200 ,0, 200)
             # Vetoes
             self.book(names[x], 'bjetVeto', 'Number of b-jets', 5, -0.5, 4.5)
             self.book(names[x], 'bjetCSVVeto', 'Number of b-jets', 5, -0.5, 4.5)
@@ -281,17 +266,13 @@ class AnalyzeMuMuTauTight(MegaBase):
     def correction(self, row):
         return mc_corrector(row)
     
-    def fakeRateMethod(self,row):
-	return getFakeRateFactor(row)
 
-    def fill_histos(self, row,name='gg',fakeRate = False):
+    def fill_histos(self, row,name='gg'):
         histos = self.histograms
 	if isEmbed == True:
 		weight = row.EmbPtWeight
 	else:
 		weight = self.correction(row)
-	if fakeRate == True:
-		weight = weight * self.fakeRateMethod(row)
         histos[name+'/weight'].Fill(weight)
         histos[name+'/weight_nopu'].Fill(self.correction(row))
         histos[name+'/rho'].Fill(row.rho, weight)
@@ -338,6 +319,7 @@ class AnalyzeMuMuTauTight(MegaBase):
         histos[name+'/m2_t_DPhi'].Fill(row.m2_t_DPhi,weight)
         histos[name+'/m2_t_SS'].Fill(row.m2_t_SS,weight)
         histos[name+'/m2_t_ToMETDPhi_Ty1'].Fill(row.m2_t_ToMETDPhi_Ty1,weight)
+	histos[name+'/m1_m2_Mass'].Fill(row.m1_m2_Mass,weight)
 
         histos[name+'/m1PixHits'].Fill(row.m1PixHits, weight)
         histos[name+'/m1JetBtag'].Fill(row.m1JetBtag, weight)
@@ -384,26 +366,32 @@ class AnalyzeMuMuTauTight(MegaBase):
 
 
     def presel(self, row):
-	#if not row.isoMu24eta2p1Pass:
-         #   return False
-	if not row.mu17mu8Pass:
-	    return False
+	if not row.isoMu24eta2p1Pass:
+            return False
+#	if not row.mu17mu8Pass:
+#	    return False
         return True
     
     def twojets(self,row):
 	if Twojets == True and row.vbfNJets<2:
 		return False
 	return True    	
+    def zpeak(self,row):
+	if row.m1_m2_Mass > 105 or row.m1_m2_Mass < 75:
+		return False
+	return True
     def kinematics(self, row):
-        if row.m1Pt < 20:
+        if row.m1Pt < 25:
             return False
  	#print "passed m1Pt"
         if abs(row.m1Eta) >= 2.1:
             return False
-        if row.m2Pt < 20:
+        if row.m2Pt < 25:
             return False
         if abs(row.m2Eta) >= 2.1:
             return False
+	if abs(row.tEta) <= 2.0:
+	    return False
 
         if row.tPt<20 :
             return False
@@ -478,7 +466,8 @@ class AnalyzeMuMuTauTight(MegaBase):
     def vetos(self,row):
 	return  (bool (row.muVetoPt15IsoIdVtx<1) and bool (row.eVetoCicTightIso<1))
     def obj1_iso(self, row):
-        return bool(row.m1RelPFIsoDB <0.12) and bool(row.m2RelPFIsoDB < 0.12)
+        #return bool(row.m1RelPFIsoDB <0.12) and bool(row.m2RelPFIsoDB < 0.12)
+	return bool(row.m1RelPFIsoDB <0.2) and bool(row.m2RelPFIsoDB < 0.2)
     def obj2_iso(self, row):
         return  row.tTightIso3Hits
 
@@ -497,7 +486,7 @@ class AnalyzeMuMuTauTight(MegaBase):
     def process(self):
         for row in self.tree:
 	    if Isiso == False:
-		obj1iso = True
+		obj1iso = self.obj1_iso(row)
 		obj2iso = True
 	    else:
 		obj1iso = self.obj1_iso(row)
@@ -509,6 +498,8 @@ class AnalyzeMuMuTauTight(MegaBase):
 	    #if not self.twojets(row):
 #		continue
 	    #print "passed twojets"
+            #if not self.zpeak(row):
+	    #	continue
             if not self.kinematics(row):
                 continue
 	    #print "passed kinematics"
@@ -572,7 +563,7 @@ class AnalyzeMuMuTauTight(MegaBase):
                         if self.obj1_antiiso(row) and obj2iso and not self.oppositesign(row):
                                 self.fill_histos(row,'ssantiisomuonvbf')
 	                if obj1iso and self.obj2_antiiso(row) and self.oppositesign(row):
-                                self.fill_histos(row, 'antiisotauvbf',True)
+                                self.fill_histos(row, 'antiisotauvbf')
 
 		if self.highMt(row):
                         if obj1iso and obj2iso and self.oppositesign(row):
