@@ -390,9 +390,6 @@ class AnalyzeMuMuTauTight(MegaBase):
             return False
         if abs(row.m2Eta) >= 2.1:
             return False
-	if abs(row.tEta) <= 2.0:
-	    return False
-
         if row.tPt<20 :
             return False
         if abs(row.tEta)>=2.3 :
