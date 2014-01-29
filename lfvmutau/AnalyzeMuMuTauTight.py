@@ -166,7 +166,7 @@ class AnalyzeMuMuTauTight(MegaBase):
 
     def begin(self):
 
-        names=["gg","vbf","highMtgg","highMtvbf","antiisomuongg","antiisomuonvbf","antiisotaugg","antiisotauvbf","ssgg","highMtssgg","ssvbf","highMtssvbf", "ssantiisomuongg","ssantiisomuonvbf"]
+        names=["gg","vbf","vbfB","highMtgg","highMtvbf","antiisomuongg","antiisomuonvbf","antiisotaugg","antiisotauvbf","ssgg","highMtssgg","ssvbf","highMtssvbf", "ssantiisomuongg","ssantiisomuonvbf"]
         namesize = len(names)
 	for x in range(0,namesize):
 
@@ -193,7 +193,7 @@ class AnalyzeMuMuTauTight(MegaBase):
             self.book(names[x], "tMtToPfMet_Ty1", "Tau MT (PF Ty1)", 200, 0, 200)
             self.book(names[x], "tCharge", "Tau  Charge", 5, -2, 2)
 	    self.book(names[x], "tJetPt", "Tau Jet Pt" , 500, 0 ,500)	    
-		        
+	    self.book(names[x], "tJetPartonFlavour","Tau Jet Parton Flavor", 42,-21,21)	        
             self.book(names[x], 'm1PixHits', 'Mu 1 pix hits', 10, -0.5, 9.5)
             self.book(names[x], 'm1JetBtag', 'Mu 1 JetBtag', 100, -5.5, 9.5)
 	    self.book(names[x], 'm2PixHits', 'Mu 1 pix hits', 10, -0.5, 9.5)
@@ -237,6 +237,7 @@ class AnalyzeMuMuTauTight(MegaBase):
 	    #Isolation
 	    self.book(names[x], 'm1RelPFIsoDB' ,'Muon Isolation', 100, 0.0,1.0)
             self.book(names[x], 'm2RelPFIsoDB' ,'Muon Isolation', 100, 0.0,1.0)
+	    self.book(names[x], 'tJetCSVBtag', 'Tau B Tag',200,-1.0,1.0)
  
             self.book(names[x], "m1PhiMtPhi", "", 100, 0,4)
             self.book(names[x], "m1PhiMETPhiMVA", "", 100, 0,4)
@@ -295,7 +296,7 @@ class AnalyzeMuMuTauTight(MegaBase):
         histos[name+'/tMtToPfMet_Ty1'].Fill(row.tMtToPfMet_Ty1,weight)
         histos[name+'/tCharge'].Fill(row.tCharge, weight)
 	histos[name+'/tJetPt'].Fill(row.tJetPt, weight)
-
+	histos[name+'/tJetPartonFlavour'].Fill(row.tJetPartonFlavour, weight)
 	histos[name+'/LT'].Fill(row.LT,weight)
 
         histos[name+'/fullMT_mva'].Fill(fullMT(row.mva_metEt,row.m1Pt,row.m2Pt,row.tPt,row.mva_metPhi, row.m1Phi, row.m2Phi, row.tPhi),weight)
@@ -338,6 +339,7 @@ class AnalyzeMuMuTauTight(MegaBase):
 	histos[name+'/m1RelPFIsoDB'].Fill(row.m1RelPFIsoDB, weight)
  	histos[name+'/m2RelPFIsoDB'].Fill(row.m2RelPFIsoDB, weight)       
 
+	histos[name+'/tJetCSVBtag'].Fill(row.tJetCSVBtag, weight)
 	histos[name+'/m1PhiMtPhi'].Fill(deltaPhi(row.m1Phi,row.tPhi),weight)
         histos[name+'/m1PhiMETPhiMVA'].Fill(deltaPhi(row.m1Phi,row.mva_metPhi),weight)
 	histos[name+'/m2PhiMtPhi'].Fill(deltaPhi(row.m2Phi,row.tPhi),weight)
@@ -376,8 +378,17 @@ class AnalyzeMuMuTauTight(MegaBase):
 	if Twojets == True and row.vbfNJets<2:
 		return False
 	return True    	
+    def tPartonFlavour(self,row):
+	if row.tJetPartonFlavour == 4 or row.tJetPartonFlavour == 5:
+		return True
+	return False
     def zpeak(self,row):
 	if row.m1_m2_Mass > 105 or row.m1_m2_Mass < 75:
+		return False
+	return True
+    
+    def btau(self,row):
+	if row.tJetCSVBtag > 0.679:
 		return False
 	return True
     def kinematics(self, row):
@@ -499,6 +510,8 @@ class AnalyzeMuMuTauTight(MegaBase):
 	    #	continue
             if not self.kinematics(row):
                 continue
+	    if not self.btau(row):
+		continue
 	    #print "passed kinematics"
             if not self.obj1_id(row): 
                 continue
@@ -555,6 +568,8 @@ class AnalyzeMuMuTauTight(MegaBase):
                 	if obj1iso and obj2iso and self.oppositesign(row):
 				#print "pssed iso,os. Ready to fill"
                         	self.fill_histos(row,'vbf')
+				if self.tPartonFlavour(row):
+					self.fill_histos(row,'vbfB')
                 	if obj1iso and obj2iso and not self.oppositesign(row):
                         	self.fill_histos(row,'ssvbf')
                         if self.obj1_antiiso(row) and obj2iso and not self.oppositesign(row):
