@@ -180,9 +180,11 @@ if not is7TeV:
 # ApplyFakeRateMethod
 def getFakeRateFactor(row,fakeName='Central'):
     #if preselection == True:
-    mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/preselection/isotrue/AnalyzeMuMuTauTight/"
-    mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/preselection/isofalse/AnalyzeMuMuTauTight/"
+    #mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/preselection/isotrue/AnalyzeMuMuTauTight/"
+    #mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/preselection/isofalse/AnalyzeMuMuTauTight/"
     #if preselection == False:
+    mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan29_NoBTaus/mmt/preselection/isotrue/AnalyzeMuMuTauTight/"
+    mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan29_NoBTaus/mmt/preselection/isofalse/AnalyzeMuMuTauTight/"
      #   mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/signal/isotrue/AnalyzeMuMuTauTight/"
      #   mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/signal/isofalse/AnalyzeMuMuTauTight/"
     #mumuidiso_dir = "MuMuIdIso/"
@@ -256,7 +258,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 
     def begin(self):
 
-        names=["gg0","gg1","vbf","highMtgg0","highMtgg1","highMtvbf", "hightMtvbf","lowtMtvbf","antiisomuongg0","antiisomuongg1","antiisomuonvbf","highMtantiisomuonvbf","antiisotaugg0","antiisotaugg1","antiisotauvbf","antiisotauvbfdown","antiisotauvbfup","highMtssantiisotauvbf","antiisotauhighMtvbf","highMtssantiisomuonvbf","ssgg0","ssgg1","highMtssgg0", "highMtssgg1","ssvbf","highMtssvbf", "ssantiisomuongg0", "ssantiisomuongg1", "ssantiisomuonvbf", "ssantiisomuonlowmMtvbf","sslowmMtvbf","lowmMtvbf","ttbarcontrolvbf","ztautaucontrolvbf","highMtztautaucontrolvbf","antiisomuonztautaucontrolvbf","highMtssztautaucontrolvbf","ssantiisomuonztautaucontrolvbf","ssztautaucontrolvbf"]
+        names=["gg0","gg1","vbf","highMtgg0","highMtgg1","highMtvbf", "hightMtvbf","lowtMtvbf","antiisomuongg0","antiisomuongg1","antiisomuonvbf","highMtantiisomuonvbf","antiisotaugg0","antiisotaugg1","antiisotauvbf","antiisotauvbfdown","antiisotauvbfup","highMtssantiisotauvbf","highMtssantiisotauvbfdown","highMtssantiisotauvbfup","antiisotauhighMtvbf","highMtssantiisomuonvbf","ssgg0","ssgg1","highMtssgg0", "highMtssgg1","ssvbf","highMtssvbf", "ssantiisomuongg0", "ssantiisomuongg1", "ssantiisomuonvbf", "ssantiisomuonlowmMtvbf","sslowmMtvbf","lowmMtvbf","ttbarcontrolvbf","ztautaucontrolvbf","highMtztautaucontrolvbf","antiisomuonztautaucontrolvbf","highMtssztautaucontrolvbf","ssantiisomuonztautaucontrolvbf","ssztautaucontrolvbf"]
         namesize = len(names)
 	for x in range(0,namesize):
 
@@ -628,7 +630,8 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         return bool(row.mRelPFIsoDB >0.2) 
 
     def obj2_antiiso(self, row):
-        return  not row.tLooseIso
+        #return not row.tLooseIso
+	return not row.tTightIso3Hits
     def ttbarcontrol(self,row):
 	if row.mMtToPfMet_Ty1 < 130:
 		return False
@@ -771,6 +774,8 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 				self.fill_histos(row, 'antiisotauhighMtvbf',True)
 			if obj1iso and self.obj2_antiiso(row) and not self.oppositesign(row):
 				self.fill_histos(row, 'highMtssantiisotauvbf',True)
+				self.fill_histos(row, 'highMtssantiisotauvbfdown',True,'Down')
+				self.fill_histos(row, 'highMtssantiisotauvbfup',True,'Up')
 
 		if self.lowmMt(row):
 			if obj1iso and obj2iso and self.oppositesign(row):
