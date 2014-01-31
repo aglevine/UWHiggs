@@ -183,8 +183,20 @@ def getFakeRateFactor(row,fakeName='Central'):
     #mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/preselection/isotrue/AnalyzeMuMuTauTight/"
     #mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/preselection/isofalse/AnalyzeMuMuTauTight/"
     #if preselection == False:
-    mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan29_NoBTaus/mmt/preselection/isotrue/AnalyzeMuMuTauTight/"
-    mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan29_NoBTaus/mmt/preselection/isofalse/AnalyzeMuMuTauTight/"
+    #if row.tDecayMode == 0:
+    #	mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan29_DecayMode0/mmt/preselection/isotrue/AnalyzeMuMuTauTight/"
+    #	mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan29_DecayMode0/mmt/preselection/isofalse/AnalyzeMuMuTauTight/"
+    #if row.tDecayMode == 1:
+    #	mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan30_DecayMode1/mmt/preselection/isotrue/AnalyzeMuMuTauTight/"
+    #	mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan30_DecayMode1/mmt/preselection/isofalse/AnalyzeMuMuTauTight/"
+   # if row.tDecayMode ==10:
+    #	mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan30_DecayMode10/mmt/preselection/isotrue/AnalyzeMuMuTauTight/"
+    #	mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan30_DecayMode10/mmt/preselection/isofalse/AnalyzeMuMuTauTight/"
+    #else:
+    #mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan29_NoBTaus/mmt/preselection/isotrue/AnalyzeMuMuTauTight/"
+    #mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan29_NoBTaus/mmt/preselection/isofalse/AnalyzeMuMuTauTight/"
+    mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan31_TightPlusLooseTauIso/mmt/preselection/isotrue/AnalyzeMuMuTauTight/"
+    mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Jan31_TightPlusLooseTauIso/mmt/preselection/isofalse/AnalyzeMuMuTauTight/"
      #   mumuidiso_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/signal/isotrue/AnalyzeMuMuTauTight/"
      #   mumuid_dir = "/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/MuMuTau_Sept30_loosevbf/mmt/signal/isofalse/AnalyzeMuMuTauTight/"
     #mumuidiso_dir = "MuMuIdIso/"
@@ -197,6 +209,11 @@ def getFakeRateFactor(row,fakeName='Central'):
     data_file_id = ROOT.TFile(mumuid_dir+data_file_str)
     histoIdIso = data_file_idiso.Get("vbf/tJetPt").Clone()
     histoId = data_file_id.Get("vbf/tJetPt").Clone()
+#### try tPt test instead of tJetPt
+#    histoIdIso = data_file_idiso.Get("vbf/tPt").Clone()
+#    histoId = data_file_id.Get("vbf/tPt").Clone()
+
+
     i = 0
     bincount = -1
     binning = array.array('d',[])
@@ -227,18 +244,23 @@ def getFakeRateFactor(row,fakeName='Central'):
     #histoIdIso = zjets_file_idiso.Get("vbf/tJetPt").Clone()
     #histoId = zjets_file_id.Get("vbf/tJetPt").Clone()
     if histoIdRebin.GetBinContent(histoId.FindBin(row.tJetPt)) == 0:
-	fTauIso = 0
+	fTauIso = 0.0
     else:
 	fTauIso = histo_ftau.GetBinContent(histo_ftau.FindBin(row.tJetPt))
     	if fakeName=='Down':
 		fTauIso = fTauIso - histo_ftau.GetBinError(histo_ftau.FindBin(row.tJetPt))
-		if fTauIso < 0:
-			fTauIso = 0
+		if fTauIso <= 0:
+			fTauIso = 0.0
 	elif fakeName=='Up':
                 fTauIso = fTauIso + histo_ftau.GetBinError(histo_ftau.FindBin(row.tJetPt))
     #print "fTauIso: " + str(fTauIso)
     #print "tauJetPt: " + str(row.tJetPt)
-    fakeRateFactor = fTauIso/(1-fTauIso)
+    #print fTauIso
+    #print row.tDecayMode
+    if fTauIso >=1:
+	fTauIso = 0.0
+    fakeRateFactor = fTauIso/(1.0-fTauIso)
+    #print fakeRateFactor
     return fakeRateFactor
 
 class AnalyzeMuTauTightvbfNew(MegaBase):
@@ -276,6 +298,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
             self.book(names[x], "mMtToPfMet_Ty1", "Muon MT (PF Ty1)", 200, 0, 200)
             self.book(names[x], "mCharge", "Muon Charge", 5, -2, 2)
             self.book(names[x], "tPt", "Tau  Pt", 200, 0, 200)
+	    self.book(names[x], "tMass", "Tau Mass", 200,0,200)
             self.book(names[x], "tEta", "Tau  eta", 100, -2.5, 2.5)
             self.book(names[x], "tMtToMVAMET", "Tau MT (MVA)", 200, 0, 200)
             self.book(names[x], "tMtToPfMet_Ty1", "Tau MT (PF Ty1)", 200, 0, 200)
@@ -368,6 +391,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         histos[name+'/mMtToPfMet_Ty1'].Fill(row.mMtToPfMet_Ty1,weight)
         histos[name+'/mCharge'].Fill(row.mCharge, weight)
         histos[name+'/tPt'].Fill(row.tPt, weight)
+        histos[name+'/tMass'].Fill(row.tMass, weight)
         histos[name+'/tEta'].Fill(row.tEta, weight)
         histos[name+'/tMtToMVAMET'].Fill(row.tMtToMVAMET,weight)
         histos[name+'/tMtToPfMet_Ty1'].Fill(row.tMtToPfMet_Ty1,weight)
@@ -447,7 +471,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
             return False
         if abs(row.mEta) >= 2.1:
             return False
-        if row.tPt<20 :
+        if row.tPt<30 :
             return False
         if abs(row.tEta)>=2.3 :
             return False
@@ -631,6 +655,10 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 
     def obj2_antiiso(self, row):
         #return not row.tLooseIso
+	
+	#anti-iso test
+	#return ((not row.tTightIso3Hits) and row.tLooseIso3Hits)
+ 	
 	return not row.tTightIso3Hits
     def ttbarcontrol(self,row):
 	if row.mMtToPfMet_Ty1 < 130:
