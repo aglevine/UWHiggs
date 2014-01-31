@@ -373,7 +373,10 @@ class AnalyzeMuMuTauTight(MegaBase):
 #	if not row.mu17mu8Pass:
 #	    return False
         return True
-    
+    def DecayMode(self,row):
+	if row.tDecayMode != 10:
+		return False
+	return True
     def twojets(self,row):
 	if Twojets == True and row.vbfNJets<2:
 		return False
@@ -469,7 +472,7 @@ class AnalyzeMuMuTauTight(MegaBase):
         return bool(row.m1PFIDTight)  and bool(abs(row.m1DZ) < 0.2) and bool(row.m2PFIDTight) and bool(abs(row.m2DZ)< 0.2)
 
     def obj2_id(self, row):
-	return  row.tAntiElectronLoose and row.tAntiMuonTight2 and row.tDecayFinding
+	return  (row.tAntiElectronLoose and row.tAntiMuonTight2 and row.tDecayFinding and row.tLooseIso3Hits)
 
     def vetos(self,row):
 	return  (bool (row.muVetoPt15IsoIdVtx<1) and bool (row.eVetoCicTightIso<1))
@@ -510,6 +513,8 @@ class AnalyzeMuMuTauTight(MegaBase):
 	    #	continue
             if not self.kinematics(row):
                 continue
+	    if not self.DecayMode(row):
+		continue
 	    if not self.btau(row):
 		continue
 	    #print "passed kinematics"
