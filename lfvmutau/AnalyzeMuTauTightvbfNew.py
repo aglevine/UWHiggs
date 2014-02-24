@@ -26,6 +26,7 @@ if preselection == True:
 	optimized=False
 Isiso = bool('true' in os.environ['iso'])
 wjets = bool('true' in os.environ['wjets'])
+otherJets = bool('true' in os.environ['otherJets'])
 Twomu = False
 Twojets = True
 #fakeRateDown=False
@@ -43,12 +44,16 @@ is7TeV = bool('7TeV' in os.environ['jobid'])
 isPU1signal = bool ('false' in os.environ['PU'])
 isEmbed = bool ('true' in os.environ['embed'])
 isZtt = bool ('true' in os.environ['Ztt'])
+isZjetsM50 = bool('true' in os.environ['ZjetsM50'])
 treeSkim = bool('true' in os.environ['treeSkim'])
+print "Is ZjetsM50:", isZjetsM50
+print "Is OtherZJets:", otherJets
 print "Is wjets", wjets
 print "Is 7TeV:", is7TeV
 print "Is PU1 signal:", isPU1signal
 print "Is Embed: ", isEmbed
 print "Is Ztt: ", isZtt
+print "Is ZjetsM50: ", isZjetsM50
 print "Preselection: " + str(preselection)
 print "Two Muon Selection: " + str(Twomu)
 print "Is Isolation applied: " + str(Isiso)
@@ -207,11 +212,11 @@ def getFakeRateFactor(row,fakeName='Central'):
     zjets_file_id = ROOT.TFile(mumuid_dir+zjets_file_str)
     data_file_idiso = ROOT.TFile(mumuidiso_dir+data_file_str)
     data_file_id = ROOT.TFile(mumuid_dir+data_file_str)
-    histoIdIso = data_file_idiso.Get("vbf/tJetPt").Clone()
-    histoId = data_file_id.Get("vbf/tJetPt").Clone()
+    #histoIdIso = data_file_idiso.Get("vbf/tJetPt").Clone()
+    #histoId = data_file_id.Get("vbf/tJetPt").Clone()
 #### try tPt test instead of tJetPt
-#    histoIdIso = data_file_idiso.Get("vbf/tPt").Clone()
-#    histoId = data_file_id.Get("vbf/tPt").Clone()
+    histoIdIso = data_file_idiso.Get("vbf/tPt").Clone()
+    histoId = data_file_id.Get("vbf/tPt").Clone()
 
 
     i = 0
@@ -259,6 +264,8 @@ def getFakeRateFactor(row,fakeName='Central'):
     #print row.tDecayMode
     if fTauIso >=1:
 	fTauIso = 0.0
+    ##Scale Test
+    fTauIso = 0.48
     fakeRateFactor = fTauIso/(1.0-fTauIso)
     #print fakeRateFactor
     return fakeRateFactor
@@ -280,13 +287,14 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 
     def begin(self):
 
-        names=["gg0","gg1","vbf","highMtgg0","highMtgg1","highMtvbf", "hightMtvbf","lowtMtvbf","antiisomuongg0","antiisomuongg1","antiisomuonvbf","highMtantiisomuonvbf","antiisotaugg0","antiisotaugg1","antiisotauvbf","antiisotauvbfdown","antiisotauvbfup","highMtssantiisotauvbf","highMtssantiisotauvbfdown","highMtssantiisotauvbfup","antiisotauhighMtvbf","highMtssantiisomuonvbf","ssgg0","ssgg1","highMtssgg0", "highMtssgg1","ssvbf","highMtssvbf", "ssantiisomuongg0", "ssantiisomuongg1", "ssantiisomuonvbf", "ssantiisomuonlowmMtvbf","sslowmMtvbf","lowmMtvbf","ttbarcontrolvbf","ztautaucontrolvbf","highMtztautaucontrolvbf","antiisomuonztautaucontrolvbf","highMtssztautaucontrolvbf","ssantiisomuonztautaucontrolvbf","ssztautaucontrolvbf"]
+        names=["gg0","gg1","vbf","highMtgg0","highMtgg1","highMtvbf", "hightMtvbf","lowtMtvbf","antiisomuongg0","antiisomuongg1","antiisomuonvbf","highMtantiisomuonvbf","antiisotaugg0","antiisotaugg1","antiisotauvbf","antiisotauvbfdown","antiisotauvbfup","highMtssantiisotauvbf","highMtssantiisotauvbfdown","highMtssantiisotauvbfup","antiisotauhighMtvbf","highMtssantiisomuonvbf","ssgg0","ssgg1","highMtssgg0", "highMtssgg1","ssvbf","highMtssvbf", "ssantiisomuongg0", "ssantiisomuongg1", "ssantiisomuonvbf", "ssantiisomuonlowmMtvbf","sslowmMtvbf","lowmMtvbf","ttbarcontrolvbf","ztautaucontrolvbf","ztautaucontrolgg0","ztautaucontrolgg1","highMtztautaucontrolvbf","antiisomuonztautaucontrolvbf","highMtssztautaucontrolvbf","ssantiisomuonztautaucontrolvbf","ssztautaucontrolvbf","antiisotauztautaucontrolvbf","antiisotauztautaucontrolgg0","antiisotauztautaucontrolgg1"]
         namesize = len(names)
 	for x in range(0,namesize):
 
             self.book(names[x], "weight", "Event weight", 100, 0, 5)
             self.book(names[x], "weight_nopu", "Event weight without PU", 100, 0, 5)
 	    self.book(names[x], "EmbPtWeight", "embedded weight", 100, 0, 1)
+	    self.book(names[x], "NUP", "NUP",11,0,11)
     
             self.book(names[x], "rho", "Fastjet #rho", 100, 0, 25)
             self.book(names[x], "nvtx", "Number of vertices", 31, -0.5, 30.5)
@@ -334,7 +342,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
             self.book(names[x], 'tauVetoPt20', 'Number of extra taus', 5, -0.5, 4.5)
             self.book(names[x], 'eVetoCicTightIso', 'Number of extra CiC tight electrons', 5, -0.5, 4.5)
 	    if isZtt:
-		self.book(names[x], 'isZtautau', 'is Ztautua event', 2,-0.5,1.5)
+		self.book(names[x], 'isZtautau', 'is Ztautau event', 2,-0.5,1.5)
     
             self.book(names[x], 'jetVeto20', 'Number of extra jets', 5, -0.5, 4.5)
             self.book(names[x], 'jetVeto30', 'Number of extra jets', 5, -0.5, 4.5)	
@@ -357,6 +365,8 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 	    self.book(names[x], "vbfDeta", "", 100, -0.5,10.0)
             self.book(names[x], "vbfj1eta","",100,-2.5,2.5)
 	    self.book(names[x], "vbfj2eta","",100,-2.5,2.5)
+            self.book(names[x], "vbfj1pt","",100,0,400.0)
+            self.book(names[x], "vbfj2pt","",100,0,400.0)
 	    self.book(names[x], "vbfVispt","",100,0,200)
 	    self.book(names[x], "vbfHrap","",100,0,5.0)
 	    self.book(names[x], "vbfDijetrap","",100,0,5.0)
@@ -381,6 +391,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         histos[name+'/weight'].Fill(weight)
         histos[name+'/weight_nopu'].Fill(self.correction(row))
 	histos[name+'/EmbPtWeight'].Fill(row.EmbPtWeight)
+	histos[name+'/NUP'].Fill(row.NUP, weight)
         histos[name+'/rho'].Fill(row.rho, weight)
         histos[name+'/nvtx'].Fill(row.nvtx, weight)
         histos[name+'/prescale'].Fill(row.doubleMuPrescale, weight)
@@ -446,6 +457,8 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         histos[name+'/vbfDeta'].Fill(row.vbfDeta, weight)
         histos[name+'/vbfj1eta'].Fill(row.vbfj1eta, weight)
         histos[name+'/vbfj2eta'].Fill(row.vbfj2eta, weight)
+        histos[name+'/vbfj1pt'].Fill(row.vbfj1pt, weight)
+        histos[name+'/vbfj2pt'].Fill(row.vbfj2pt, weight)
         histos[name+'/vbfVispt'].Fill(row.vbfVispt, weight)
         histos[name+'/vbfHrap'].Fill(row.vbfHrap, weight)
         histos[name+'/vbfDijetrap'].Fill(row.vbfDijetrap, weight)
@@ -479,8 +492,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 
     def lowMt(self, row):
 	if optimized == False:
-		if row.tMtToPfMet_Ty1>20:
-			return False
+		return True
 	else:
 		if row.tMtToPfMet_Ty1 > 35:
 	    		return False
@@ -532,7 +544,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 	#	return False
 	  if deltaPhi(row.mPhi, row.tPhi) <2.7:
 		return False
-	  if row.mPt < 45:
+	  if row.mPt < 40:
 		#print "failing 3"
 		return False
 	  if row.tPt < 35:
@@ -632,12 +644,12 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 	else:
 		return (bool (row.muVetoPt15IsoIdVtx>0) and bool (row.eVetoCicTightIso<1))
     def Ztautauveto(self,row):
-        if isZtt == True:
-                return (bool (row.isZtautau == 1 ))
-        else:
-                return False
-
-
+	if otherJets == False:
+        	return (bool (row.isZtautau == 1 ))
+	else:
+		return (bool (row.isZtautau != 1))
+    def NUPveto(self,row):
+	return (bool (row.NUP == 5))
     def obj1_iso(self, row):
         return bool(row.mRelPFIsoDB <0.12)
     def obj2_iso(self, row, isgg=False):
@@ -648,18 +660,18 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 		return row.tTightIso3Hits
 
     def obj2_mediso(self, row):
-	 return row.tMediumIso3Hits
+	return row.tMediumIso3Hits
 
-    def obj1_antiiso(self, row):
+    def obj1_antiiso(self,row):
         return bool(row.mRelPFIsoDB >0.2) 
 
     def obj2_antiiso(self, row):
         #return not row.tLooseIso
 	
 	#anti-iso test
-	#return ((not row.tTightIso3Hits) and row.tLooseIso3Hits)
+	return ((not row.tTightIso3Hits) and row.tLooseIso3Hits)
  	
-	return not row.tTightIso3Hits
+	#return not row.tTightIso3Hits
     def ttbarcontrol(self,row):
 	if row.mMtToPfMet_Ty1 < 130:
 		return False
@@ -695,7 +707,10 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 		continue 
 	    if isZtt:	
             	if not self.Ztautauveto(row):
-                	continue	    
+                	continue
+	    if isZjetsM50:
+		if not self.NUPveto(row):	    
+			continue
 	    
 	    if preselection == True:
 	    	tightcutgg0=self.zerojet(row)
@@ -709,6 +724,8 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 			if obj1iso and obj2isogg and self.oppositesign(row): 
 				#print "about to fill"
 	        	        self.fill_histos(row,'gg0')
+                                if self.lowm_t_DR(row):
+                                        self.fill_histos(row,'ztautaucontrolgg0')
                 	if obj1iso and obj2isogg and not self.oppositesign(row):
                 	        self.fill_histos(row,'ssgg0')
                 	if self.obj1_antiiso(row) and obj2isogg and  self.oppositesign(row):
@@ -717,6 +734,8 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
                         	self.fill_histos(row,'ssantiisomuongg0')
 			if obj1iso and self.obj2_antiiso(row) and self.oppositesign(row):
 				self.fill_histos(row, 'antiisotaugg0')
+                                if self.lowm_t_DR(row):
+                                        self.fill_histos(row,'antiisotauztautaucontrolgg0')
 		if self.highMt(row):
                         if obj1iso and obj2isogg and self.oppositesign(row):
                                 self.fill_histos(row,'highMtgg0')
@@ -727,6 +746,8 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
                 if self.mMtgg(row):
                         if obj1iso and obj2isogg and self.oppositesign(row):
                                 self.fill_histos(row,'gg1')
+                                if self.lowm_t_DR(row):
+                                        self.fill_histos(row,'ztautaucontrolgg1')
                         if obj1iso and obj2isogg and not self.oppositesign(row):
                                 self.fill_histos(row,'ssgg1')
                         if self.obj1_antiiso(row) and obj2isogg and  self.oppositesign(row):
@@ -735,6 +756,8 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
                                 self.fill_histos(row,'ssantiisomuongg1')
                         if obj1iso and self.obj2_antiiso(row) and self.oppositesign(row):
                                 self.fill_histos(row, 'antiisotaugg1')
+                                if self.lowm_t_DR(row):
+                                        self.fill_histos(row,'antiisotauztautaucontrolgg1')
                 if self.highMt(row):
                         if obj1iso and obj2isogg and self.oppositesign(row):
                                 self.fill_histos(row,'highMtgg1')
@@ -784,6 +807,8 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
                                 self.fill_histos(row, 'antiisotauvbf',True,'Central')
 				self.fill_histos(row, 'antiisotauvbfdown',True,'Down')
 				self.fill_histos(row, 'antiisotauvbfup',True,'Up')
+                                if self.lowm_t_DR(row):
+                                        self.fill_histos(row,'antiisotauztautaucontrolvbf')
 
 		if self.highMt(row):
                         if obj1iso and obj2iso and self.oppositesign(row):
