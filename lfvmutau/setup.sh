@@ -1,8 +1,15 @@
 #!/bin/bash
 
 # Get the data. To use my original ntuples, use login06 !
-export jobid=SubmitMuTauSingleMU
-export datasrc=/scratch/mcepeda/data
+#export jobid=signal_dec9
+export jobid=MuTauSingleMuJetReReco/
+#export jobid=HWWlumi/
+#export jobid=ZjetsSetupTest
+#export datasrc=/hdfs/store/user/aglevine
+export datasrc=/nfs_scratch/aglevine/
+
+#export datasrc=/afs/hep.wisc.edu/cms/aglevine/hlfv_5_3_9/src/UWHiggs/lfvmutau/
+#export jobid=SingleTop
 
 export jobid8TeV=$jobid
 export afile=`find $datasrc/$jobid | grep root | head -n 1`
