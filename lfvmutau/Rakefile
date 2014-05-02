@@ -63,7 +63,8 @@ samples = Hash[
   "singletop"=>get_sample_names('_t'),
   "ttfull"=>get_sample_names('ull'),
   "ttsemi"=>get_sample_names('emi'),
-  "filtered"=>get_sample_names('filtered')
+  "filtered"=>get_sample_names('filtered'),
+  "hww"=>get_sample_names('HiggsToWW')
 
 ]
 
@@ -104,21 +105,38 @@ end
 #puts samples['wjets']
 #puts samples['ttbar']
 #puts samples['singletop']
-task :mttight => get_analyzer_results("AnalyzeMuTauTightvbfNew.py", samples['singletop']+ samples['smvbf'] + samples['smgg'] + samples['data_mt'] + samples['ttbar'] + samples['wwjets']+samples['new_signal'])
+task :mttight => get_analyzer_results("AnalyzeMuTauTightvbfNew.py", samples['singletop']+ samples['smvbf'] + samples['smgg'] + samples['ttbar'] + samples['wwjets']+samples['new_signal'])
+task :mttightues => get_analyzer_results("AnalyzeMuTauTightvbfNewUES.py", samples['singletop']+ samples['smvbf'] + samples['smgg'] + samples['data_mt'] + samples['ttbar'] + samples['wwjets']+samples['new_signal'])
+task :mttighttesup => get_analyzer_results("AnalyzeMuTauTightvbfNewTesUp.py", samples['singletop']+ samples['smvbf'] + samples['smgg'] + samples['data_mt'] + samples['ttbar'] + samples['wwjets']+samples['new_signal'])
+task :mttighttesdown => get_analyzer_results("AnalyzeMuTauTightvbfNewTesDown.py", samples['singletop']+ samples['smvbf'] + samples['smgg'] + samples['data_mt'] + samples['ttbar'] + samples['wwjets']+samples['new_signal'])
 task :mttightRedoFakes => get_analyzer_results("AnalyzeMuTauTightvbfNew.py",samples['ttsemi']+samples['ttfull'])
 task :mttightRedoFakesJes => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py",samples['wwjets']+samples['new_signal']+samples['ttsemi']+samples['ttfull'])
+task :mttightSingletJes => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py",samples['singletop'])
 task :mttightZjetsM50 => get_analyzer_results("AnalyzeMuTauTightvbfNew.py", samples['zjets'])
+task :mttightuesZjetsM50 => get_analyzer_results("AnalyzeMuTauTightvbfNewUES.py", samples['zjets'])
+task :mttightZjetsM50tesup => get_analyzer_results("AnalyzeMuTauTightvbfNewTesUp.py", samples['zjets'])
+task :mttightZjetsM50tesdown => get_analyzer_results("AnalyzeMuTauTightvbfNewTesDown.py", samples['zjets'])
 task :mttightjesZjetsM50 => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py", samples['zjets'])
 task :mttightjesWjetsFiltered => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py", samples['filtered'])
+task :mttightuesWjetsFiltered => get_analyzer_results("AnalyzeMuTauTightvbfNewUES.py", samples['filtered'])
 task :mttightotherM50 => get_analyzer_results("AnalyzeMuTauTightvbfNew.py",samples['zjetsother'])
+task :mttightuesotherM50 => get_analyzer_results("AnalyzeMuTauTightvbfNewUES.py",samples['zjetsother'])
+task :mttightotherM50tesup => get_analyzer_results("AnalyzeMuTauTightvbfNewTesUp.py",samples['zjetsother'])
+task :mttightotherM50tesdown => get_analyzer_results("AnalyzeMuTauTightvbfNewTesDown.py",samples['zjetsother'])
 task :mttightjesotherM50 => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py",samples['zjetsother'])
 task :mttightotherDY => get_analyzer_results("AnalyzeMuTauTightvbfNew.py",samples['DYother'])
+task :mttightuesotherDY => get_analyzer_results("AnalyzeMuTauTightvbfNewUES.py",samples['DYother'])
+task :mttightotherDYtesup => get_analyzer_results("AnalyzeMuTauTightvbfNewTesUp.py",samples['DYother'])
+task :mttightotherDYtesdown => get_analyzer_results("AnalyzeMuTauTightvbfNewTesDown.py",samples['DYother'])
 task :mttightjesotherDY => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py",samples['DYother'])
 #task :mttightsingletop => get_analyzer_results("AnalyzeMuTauTightvbfNew.py", samples['singletop'])
 #task :mttightnewsignal => get_analyzer_results("AnalyzeMuTauTightvbfNew.py",samples['new_signal'])
 task :mttightwjets => get_analyzer_results("AnalyzeMuTauTightvbfNew.py" ,samples['wjets'])
+task :mttightwjetsues => get_analyzer_results("AnalyzeMuTauTightvbfNewUES.py" ,samples['wjets'])
+task :mttightwjetstesup => get_analyzer_results("AnalyzeMuTauTightvbfNewTesUp.py" ,samples['wjets'])
+task :mttightwjetstesdown => get_analyzer_results("AnalyzeMuTauTightvbfNewTesDown.py" ,samples['wjets'])
 task :mttightwjetsjes => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py" ,samples['wjets'])
-task :mttightjes => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py",samples['smvbf'] + samples['smgg'] + samples['ttbar'] + samples['wwjets'])
+task :mttightjes => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py",samples['smvbf'] + samples['smgg'])
 #task :mttightsm => get_analyzer_results("AnalyzeMuTauTightvbfNew.py" ,samples['smvbf']+ samples['smgg'])
 #task :mttightsmjes => get_analyzer_results("AnalyzeMuTauTightvbfTestJes.py",samples['smvbf']+samples['smgg'])
 #task :mttightjeslfvvbf => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py", samples['lfvvbf'])
@@ -127,11 +145,21 @@ task :mttightjes => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py",samples
 task :dataonlymttight => get_analyzer_results("AnalyzeMuTauTightvbfNew.py", samples['data_mt'])
 ##use $PU = false for samples with no pileup
 task :pu1mttight  => get_analyzer_results(  "AnalyzeMuTauTightvbfNew.py",samples['old_signal'])
+task :pu1mttightues  => get_analyzer_results(  "AnalyzeMuTauTightvbfNewUES.py",samples['old_signal'])
+task :pu1mttighttesup  => get_analyzer_results(  "AnalyzeMuTauTightvbfNewTesUp.py",samples['old_signal'])
+task :pu1mttighttesdown  => get_analyzer_results(  "AnalyzeMuTauTightvbfNewTesDown.py",samples['old_signal'])
 task :pu1mttightjes => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py",samples['old_signal'])
 #Task for samples on login05
 ##task :mttight05 => get_analyzer_results("AnalyzeMuTauTightvbf.py", samples['wjets'] + samples['ttbar05'])
 task :embedmttight => get_analyzer_results("AnalyzeMuTauTightvbfNew.py", samples['embedded'])
+task :embedmttightues => get_analyzer_results("AnalyzeMuTauTightvbfNewUES.py", samples['embedded'])
+task :embedmttighttesup => get_analyzer_results("AnalyzeMuTauTightvbfNewTesUp.py", samples['embedded'])
+task :embedmttighttesdown => get_analyzer_results("AnalyzeMuTauTightvbfNewTesDown.py", samples['embedded'])
 #task :embedmttightjes => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py", samples['embedded'])
 task :DYmttight => get_analyzer_results("AnalyzeMuTauTightvbfNew.py",samples['DY1']+samples['DY2']+samples['DY3']+samples['DY4'])
+task :DYmttightues => get_analyzer_results("AnalyzeMuTauTightvbfNewUES.py",samples['DY1']+samples['DY2']+samples['DY3']+samples['DY4'])
+task :DYmttighttesup => get_analyzer_results("AnalyzeMuTauTightvbfNewTesUp.py",samples['DY1']+samples['DY2']+samples['DY3']+samples['DY4'])
+task :DYmttighttesdown => get_analyzer_results("AnalyzeMuTauTightvbfNewTesDown.py",samples['DY1']+samples['DY2']+samples['DY3']+samples['DY4'])
 task :DYmttightjes => get_analyzer_results("AnalyzeMuTauTightvbfNewJes.py",samples['DY1']+samples['DY2']+samples['DY3']+samples['DY4'])
+task :mttightHWW => get_analyzer_results("AnalyzeMuTauTightvbfNew.py",samples['hww'])
 #task :mmttight => get_analyzer_results("AnalyzeMuMuTauTight.py",samples['mmt'])
