@@ -264,12 +264,14 @@ def getFakeRateFactor(row,fakeName='Central'):
   #  if fTauIso >=1:
 #	fTauIso = 0.0
     ##Scale Test
-    if row.tDecayMode==0:
-        fTauIso = 0.53
-    elif row.tDecayMode==1 or row.tDecayMode==2:
-        fTauIso = 0.48
-    elif row.tDecayMode==10:
-        fTauIso = 0.46
+    #if row.tDecayMode==0:
+     #  fTauIso = 0.53
+    #elif row.tDecayMode==1 or row.tDecayMode==2:
+     #   fTauIso = 0.48
+    #elif row.tDecayMode==10:
+     #   fTauIso = 0.46
+    #fTauIso = 0.52 + (0.00002172)*row.tJetPt
+    fTauIso = 0.52 -0.000901418*row.tJetPt
     fakeRateFactor = fTauIso/(1.0-fTauIso)
     #print fakeRateFactor
     return fakeRateFactor
@@ -761,9 +763,9 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 			if self.obj1_antiiso(row) and obj2isogg and not self.oppositesign(row):
                         	self.fill_histos(row,'ssantiisomuongg0')
 			if obj1iso and self.obj2_antiiso(row) and self.oppositesign(row):
-				self.fill_histos(row, 'antiisotaugg0')
+				self.fill_histos(row, 'antiisotaugg0',True)
                                 if self.lowm_t_DR(row):
-                                        self.fill_histos(row,'antiisotauztautaucontrolgg0')
+                                        self.fill_histos(row,'antiisotauztautaucontrolgg0',True)
 		if self.highMt(row):
                         if obj1iso and obj2isogg and self.oppositesign(row):
                                 self.fill_histos(row,'highMtgg0')
@@ -783,9 +785,9 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
                         if self.obj1_antiiso(row) and obj2isogg and not self.oppositesign(row):
                                 self.fill_histos(row,'ssantiisomuongg1')
                         if obj1iso and self.obj2_antiiso(row) and self.oppositesign(row):
-                                self.fill_histos(row, 'antiisotaugg1')
+                                self.fill_histos(row, 'antiisotaugg1',True)
                                 if self.lowm_t_DR(row):
-                                        self.fill_histos(row,'antiisotauztautaucontrolgg1')
+                                        self.fill_histos(row,'antiisotauztautaucontrolgg1',True)
                 if self.highMt(row):
                         if obj1iso and obj2isogg and self.oppositesign(row):
                                 self.fill_histos(row,'highMtgg1')
@@ -819,8 +821,8 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
                 	if obj1iso and obj2iso and self.oppositesign(row):
 				#print "all cuts passed ready to fill \n"
                         	self.fill_histos(row,'vbf')
-				print "run: " + str(row.run)
-				print "evt: " + str(row.evt)
+				#print "run: " + str(row.run)
+				#print "evt: " + str(row.evt)
 				if self.ttbarcontrol(row):
 					self.fill_histos(row,'ttbarcontrolvbf')
 				if self.lowm_t_DR(row):
@@ -838,7 +840,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 				self.fill_histos(row, 'antiisotauvbfdown',True,'Down')
 				self.fill_histos(row, 'antiisotauvbfup',True,'Up')
                                 if self.lowm_t_DR(row):
-                                        self.fill_histos(row,'antiisotauztautaucontrolvbf')
+                                        self.fill_histos(row,'antiisotauztautaucontrolvbf',True)
 
 		if self.highMt(row):
                         if obj1iso and obj2iso and self.oppositesign(row):
