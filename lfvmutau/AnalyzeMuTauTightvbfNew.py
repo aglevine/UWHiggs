@@ -22,7 +22,8 @@ import array
 #print args
 optimized = bool('true' in os.environ['optimized'])
 preselection = bool('preselection' in os.environ['selection'])
-if preselection == True:
+intermediate = bool('intermediate' in os.environ['selection'])
+if preselection == True or intermediate == True:
 	optimized=False
 Isiso = bool('true' in os.environ['iso'])
 wjets = bool('true' in os.environ['wjets'])
@@ -66,6 +67,88 @@ def deltaPhi(phi1, phi2):
       return PHI
   else:
       return 2*pi-PHI
+
+def MH(row):
+	taupx = row.tPt*math.cos(row.tPhi)
+        taupy = row.tPt*math.sin(row.tPhi)
+        taupz = row.tPt*math.sinh(row.tEta)
+	tauP = math.sqrt(row.tPt*row.tPt + taupz*taupz)
+        tauMass = row.tMass
+	tauE = math.sqrt(tauMass*tauMass+tauP*tauP)
+
+	metpx = row.type1_pfMetEt*math.cos(row.type1_pfMetPhi)
+        metpy = row.type1_pfMetEt*math.sin(row.type1_pfMetPhi)
+	metpz = METz(row)
+	#metpz = -50
+	metE = math.sqrt(row.type1_pfMetEt*row.type1_pfMetEt+metpz*metpz)
+
+        mupx = row.mPt*math.cos(row.mPhi)
+        mupy = row.mPt*math.sin(row.mPhi)
+        mupz = row.mPt*math.sinh(row.mEta)
+	muE = math.sqrt(row.mPt*row.mPt+mupz*mupz)
+
+	Px = taupx+metpx+mupx
+	Py = taupy+metpy+mupy
+	Pz = taupz+metpz+mupz
+	
+	Psquare = Px*Px+Py*Py+Pz*Pz
+	Esquare = tauE*tauE+metE*metE+muE*muE + 2*tauE*metE+2*tauE*muE+2*metE*muE
+	higgsMass = math.sqrt(Esquare-Psquare)
+
+	Pxtau = taupx+metpx
+	Pytau = taupy + metpy
+	Pztau = taupz+metpz
+	Psquaretau = Pxtau*Pxtau+Pytau*Pytau+Pztau*Pztau
+	Esquaretau = tauE*tauE+metE*metE+2*tauE*metE
+	tauInvMass = math.sqrt(Esquaretau-Psquaretau) 
+	#print "higgsMass: " + str(higgsMass)
+	#print "tauInvMass: " + str(tauInvMass)
+	return higgsMass
+	
+
+def METz(row):
+	tauInvMass = 1.778
+	tauMass = row.tMass
+        taupx = row.tPt*math.cos(row.tPhi)
+        taupy = row.tPt*math.sin(row.tPhi)
+	taupz = row.tPt*math.sinh(row.tEta)
+	taupt = row.tPt
+        metpx = row.type1_pfMetEt*math.cos(row.type1_pfMetPhi)
+        metpy = row.type1_pfMetEt*math.sin(row.type1_pfMetPhi)
+	
+	M = tauInvMass*tauInvMass
+	T = math.sqrt(tauMass*tauMass+taupt*taupt+taupz*taupz)
+	F = row.type1_pfMetEt
+	K = taupt*taupt+taupz*taupz+2*(taupx*metpx+taupy*metpy)
+	Y = 2*taupz
+ 	
+	#print "M: " + str(M)
+	#print "T: " + str(T)
+	#print "F: " + str(F)
+	#print "K: " + str(K)
+	#print "Y: " + str(Y)
+	#print "Discriminant: " + str(-4*F*F*T*T*T*T+F*F*T*T*Y*Y + K*K*T*T + 2*K*M*T*T-2*K*T*T*T*T+M*M*T*T-2*M*T*T*T*T+T*T*T*T*T*T)
+ 	if (-4*F*F*T*T*T*T+F*F*T*T*Y*Y + K*K*T*T + 2*K*M*T*T-2*K*T*T*T*T+M*M*T*T-2*M*T*T*T*T+T*T*T*T*T*T) < 0:
+		Z = (K*Y+M*Y-T*T*Y)/(4*T*T-Y*Y)
+	else:
+
+		Z = (2*math.sqrt(-4*F*F*T*T*T*T+F*F*T*T*Y*Y + K*K*T*T + 2*K*M*T*T-2*K*T*T*T*T+M*M*T*T-2*M*T*T*T*T+T*T*T*T*T*T)+K*Y+M*Y-T*T*Y)/(4*T*T-Y*Y)
+		#print "Tau Eta for real MEz: " + str(row.tEta)
+		#print "Tau Pt for real MEz: " + str(row.tPt)
+		#print "Tau Phi for real MEz: " + str(row.tPhi)
+		#print "MET Phi for real MEz: " + str(row.type1_pfMetPhi)
+		#print "MET for real MEz: " + str(row.type1_pfMetEt)
+	
+	a = 4*(tauMass*tauMass+taupt*taupt)
+	b = -4*(2*taupx*metpx*taupz + 2*taupy*metpy*taupz+taupz*(tauInvMass*tauInvMass-tauMass*tauMass))
+	c = tauInvMass*tauInvMass*tauInvMass*tauInvMass+tauMass*tauMass*tauMass*tauMass+4*(taupx*taupx*metpx*metpx+taupy*taupy*metpy*metpy+2*taupx*taupy*metpx*metpy)-2*tauInvMass*tauInvMass*tauMass*tauMass+4*(taupx*metpx+taupy*metpy)*(tauInvMass*tauInvMass-tauMass*tauMass)-4*(tauMass*tauMass+taupx*taupx+taupy*taupy+taupz*taupz)*(metpx*metpx+metpy*metpy)
+	#print "discriminant" + str(b*b-4*a*c)
+	#print "a" + str(a)
+	#print "b" + str(b)
+	#print "c" + str(c)
+        metpz = Z
+	#print "metpz" + str(metpz)
+	return metpz
 
 def collMass_type1(row):
         taupx = row.tPt*math.cos(row.tPhi)
@@ -264,14 +347,14 @@ def getFakeRateFactor(row,fakeName='Central'):
   #  if fTauIso >=1:
 #	fTauIso = 0.0
     ##Scale Test
-    #if row.tDecayMode==0:
-     #  fTauIso = 0.53
-    #elif row.tDecayMode==1 or row.tDecayMode==2:
-     #   fTauIso = 0.48
-    #elif row.tDecayMode==10:
-     #   fTauIso = 0.46
+    if row.tDecayMode==0:
+        fTauIso = 0.53
+    elif row.tDecayMode==1 or row.tDecayMode==2:
+        fTauIso = 0.48
+    elif row.tDecayMode==10:
+        fTauIso = 0.46
     #fTauIso = 0.52 + (0.00002172)*row.tJetPt
-    fTauIso = 0.52 -0.000901418*row.tJetPt
+    #fTauIso = 0.52 -0.000901418*row.tJetPt
     fakeRateFactor = fTauIso/(1.0-fTauIso)
     #print fakeRateFactor
     return fakeRateFactor
@@ -325,6 +408,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 	    self.book(names[x],"fullMT_mva","fullMT_mva",500,0,500);
             self.book(names[x],"fullMT_type1","fullMT_type1",500,0,500);
 	    self.book(names[x],"collMass_type1","collMass_type1",500,0,500);
+	    self.book(names[x],"higgsMass","higgsMass",500,0,500);
             self.book(names[x],"fullPT_mva","fullPT_mva",500,0,500);
             self.book(names[x],"fullPT_type1","fullPT_type1",500,0,500);	    
     	    self.book(names[x], "LT", "ht", 400, 0, 400)
@@ -420,6 +504,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         histos[name+'/fullMT_mva'].Fill(fullMT(row.mva_metEt,row.mPt,row.tPt,row.mva_metPhi, row.mPhi, row.tPhi),weight)
         histos[name+'/fullMT_type1'].Fill(fullMT(row.type1_pfMetEt,row.mPt,row.tPt,row.type1_pfMetPhi, row.mPhi, row.tPhi),weight)
 	histos[name+'/collMass_type1'].Fill(collMass_type1(row), weight)
+	histos[name+'/higgsMass'].Fill(MH(row),weight)
         histos[name+'/fullPT_mva'].Fill(fullPT(row.mva_metEt,row.mPt,row.tPt,row.mva_metPhi, row.mPhi, row.tPhi),weight)
         histos[name+'/fullPT_type1'].Fill(fullPT(row.type1_pfMetEt,row.mPt,row.tPt,row.type1_pfMetPhi, row.mPhi, row.tPhi),weight) 
 
@@ -498,7 +583,9 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 
     def lowMt(self, row):
 	if optimized == False:
-		return True
+		#return True
+                if row.tMtToPfMet_Ty1 > 35:
+			return False
 	else:
 	###ORIGINAL FOR PREAPPROVAL###
 		if row.tMtToPfMet_Ty1 > 35:
@@ -529,7 +616,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 
     def mMtgg(self,row):
 	if optimized == False:
-		if mMtToPfMet_Ty1 < 30:
+		if row.mMtToPfMet_Ty1 < 30:
 			return False	
 	return True	
     def lowm_t_Mass(self,row):
@@ -553,7 +640,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 	#	return False
 	  if deltaPhi(row.mPhi, row.tPhi) <2.7:
 		return False
-	  if row.mPt < 45:
+	  if row.mPt < 40:
 		#print "failing 3"
 		return False
 	  if row.tPt < 35:
@@ -632,6 +719,25 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 		return False
 	if row.vbfMass < 550:
 		return False
+        if row.jetVeto30 < 2:
+                return False
+        if row.vbfJetVeto30 > 0:
+                return False
+        return True
+    def intermediatevbf(self,row):
+	if row.mPt < 30:
+		return False
+	if row.tPt < 30:
+		return False
+	if abs(row.vbfDeta) < 2.0:
+		return False
+	if row.vbfMass < 200:
+		return False
+        if row.jetVeto30 < 2:
+                return False
+        if row.vbfJetVeto30 > 0:
+                return False
+        return True
 ##OPTIMIZED AT BR=1%###
 #        if row.mPt < 30:
 #               return False
@@ -654,11 +760,6 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 #               return False
 #        if row.vbfMass < 500:
 #               return False
-        if row.jetVeto30 < 2:
-                return False
-        if row.vbfJetVeto30 > 0:
-                return False
-	return True
     def oppositesign(self,row):
 	if row.mCharge*row.tCharge!=-1:
             return False
@@ -801,6 +902,8 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 		loosecutvbf = self.loosevbf(row)
 		if optimized == True:
 			tightcutvbf = self.optimizedvbf(row)
+		elif intermediate == True:
+			tightcutvbf = self.intermediatevbf(row)
 		else:
 			tightcutvbf = self.vbf(row)
 
