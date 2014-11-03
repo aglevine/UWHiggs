@@ -23,6 +23,7 @@ import array
 optimized = bool('true' in os.environ['optimized'])
 preselection = bool('preselection' in os.environ['selection'])
 intermediate = bool('intermediate' in os.environ['selection'])
+newTauID = bool('newTaus' in os.environ['selection'])
 if preselection == True or intermediate == True:
 	optimized=False
 Isiso = bool('true' in os.environ['iso'])
@@ -429,7 +430,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
             self.book(names[x], 'bjetCSVVeto', 'Number of b-jets', 5, -0.5, 4.5)
             self.book(names[x], 'muVetoPt5IsoIdVtx', 'Number of extra muons', 5, -0.5, 4.5)
 	    self.book(names[x], 'muVetoPt15IsoIdVtx', 'Number of extra muons', 5, -0.5, 4.5)
-            self.book(names[x], 'tauVetoPt20', 'Number of extra taus', 5, -0.5, 4.5)
+            #self.book(names[x], 'tauVetoPt20', 'Number of extra taus', 5, -0.5, 4.5)
             self.book(names[x], 'eVetoCicTightIso', 'Number of extra CiC tight electrons', 5, -0.5, 4.5)
 	    if isZtt:
 		self.book(names[x], 'isZtautau', 'is Ztautau event', 2,-0.5,1.5)
@@ -526,7 +527,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         histos[name+'/bjetCSVVeto'].Fill(row.bjetCSVVeto, weight)
         histos[name+'/muVetoPt5IsoIdVtx'].Fill(row.muVetoPt5IsoIdVtx, weight)
         histos[name+'/muVetoPt15IsoIdVtx'].Fill(row.muVetoPt15IsoIdVtx, weight)
-        histos[name+'/tauVetoPt20'].Fill(row.tauVetoPt20, weight)
+        #histos[name+'/tauVetoPt20'].Fill(row.tauVetoPt20, weight)
         histos[name+'/eVetoCicTightIso'].Fill(row.eVetoCicTightIso, weight)
 	if isZtt:
 		histos[name+'/isZtautau'].Fill(row.isZtautau, weight)
@@ -582,7 +583,9 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         return True
 
     def lowMt(self, row):
-	if optimized == False:
+	if preselection == True:
+		return True
+	elif optimized == False:
 		#return True
                 if row.tMtToPfMet_Ty1 > 35:
 			return False
@@ -615,7 +618,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         return True
 
     def mMtgg(self,row):
-	if optimized == False:
+	if optimized == False and preselection == False:
 		if row.mMtToPfMet_Ty1 < 30:
 			return False	
 	return True	
@@ -640,7 +643,7 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
 	#	return False
 	  if deltaPhi(row.mPhi, row.tPhi) <2.7:
 		return False
-	  if row.mPt < 40:
+	  if row.mPt < 45:
 		#print "failing 3"
 		return False
 	  if row.tPt < 35:
@@ -769,13 +772,16 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         return bool(row.mPFIDTight)  and bool(abs(row.mDZ) < 0.2) 
 
     def obj2_id(self, row):
-	return  row.tAntiElectronLoose and row.tAntiMuonTight2 and row.tDecayFinding
+        if newTauID:
+		return  row.tAntiElectronLoose and row.tAntiMuon2Tight and row.tDecayFindingNewDMs
+	else:
+                return  row.tAntiElectronLoose and row.tAntiMuonTight2 and row.tDecayFinding
 
     def vetos(self,row):
 	if Twomu == False:
-		return  (bool (row.muVetoPt5IsoIdVtx<1) and bool (row.eVetoCicTightIso<1))
+		return  (bool (row.muVetoPt5IsoIdVtx<1) and bool (row.eVetoCicTightIso<1) and bool (row.tauVetoPt20Loose3HitsVtx<1) )
 	else:
-		return (bool (row.muVetoPt15IsoIdVtx>0) and bool (row.eVetoCicTightIso<1))
+		return (bool (row.muVetoPt15IsoIdVtx>0) and bool (row.eVetoCicTightIso<1) and bool (row.tauVetoPt20Loose3HitsVtx<1) )
     def Ztautauveto(self,row):
 	if otherJets == False:
         	return (bool (row.isZtautau == 1 ))
@@ -786,11 +792,14 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
     def obj1_iso(self, row):
         return bool(row.mRelPFIsoDB <0.12)
     def obj2_iso(self, row, isgg=False):
-	if wjets==True and isgg==True:
+	#if wjets==True and isgg==True:
+	if newTauID:
+		return row.tVTightIsoMVA3NewDMLT
+	else:
         	#return  row.tLooseIso3Hits
 		return row.tTightIso3Hits
-	else:
-		return row.tTightIso3Hits
+	#else:
+	#	return row.tTightIso3Hits
 
     def obj2_mediso(self, row):
 	return row.tMediumIso3Hits
@@ -802,7 +811,10 @@ class AnalyzeMuTauTightvbfNew(MegaBase):
         #return not row.tLooseIso
 
 	#anti-iso test
-	return ((not row.tTightIso3Hits) and row.tLooseIso3Hits)
+        if newTauID:
+		return ((not row.tVTightIsoMVA3NewDMLT) and row.tMediumIsoMVA3NewDMLT)
+	else:
+		return ((not row.tTightIso3Hits) and row.tLooseIso3Hits)
  	
 	#return not row.tTightIso3Hits
     def ttbarcontrol(self,row):
