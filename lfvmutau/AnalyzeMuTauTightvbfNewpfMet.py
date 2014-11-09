@@ -348,14 +348,14 @@ def getFakeRateFactor(row,fakeName='Central'):
   #  if fTauIso >=1:
 #	fTauIso = 0.0
     ##Scale Test
-    #if row.tDecayMode==0:
-    #    fTauIso = 0.53
-    #elif row.tDecayMode==1 or row.tDecayMode==2:
-    #    fTauIso = 0.48
-    #elif row.tDecayMode==10:
-    #    fTauIso = 0.46
+    if row.tDecayMode==0:
+        fTauIso = 0.53
+    elif row.tDecayMode==1 or row.tDecayMode==2:
+        fTauIso = 0.48
+    elif row.tDecayMode==10:
+        fTauIso = 0.46
     #fTauIso = 0.52 + (0.00002172)*row.tJetPt
-    fTauIso = 0.52 -0.000901418*row.tJetPt
+    #fTauIso = 0.52 -0.000901418*row.tJetPt
     fakeRateFactor = fTauIso/(1.0-fTauIso)
     #print fakeRateFactor
     return fakeRateFactor
@@ -377,7 +377,7 @@ class AnalyzeMuTauTightvbfNewpfMet(MegaBase):
 
     def begin(self):
 
-        names=["gg0","gg1","vbf","highMtgg0","highMtgg1","highMtvbf", "hightMtvbf","lowtMtvbf","antiisomuongg0","antiisomuongg1","antiisomuonvbf","highMtantiisomuonvbf","antiisotaugg0","antiisotaugg1","antiisotauvbf","antiisotauvbfdown","antiisotauvbfup","highMtssantiisotauvbf","highMtssantiisotauvbfdown","highMtssantiisotauvbfup","antiisotauhighMtvbf","highMtssantiisomuonvbf","ssgg0","ssgg1","highMtssgg0", "highMtssgg1","ssvbf","highMtssvbf", "ssantiisomuongg0", "ssantiisomuongg1", "ssantiisomuonvbf", "ssantiisomuonlowmMtvbf","sslowmMtvbf","lowmMtvbf","ttbarcontrolvbf","ztautaucontrolvbf","ztautaucontrolgg0","ztautaucontrolgg1","highMtztautaucontrolvbf","antiisomuonztautaucontrolvbf","highMtssztautaucontrolvbf","ssantiisomuonztautaucontrolvbf","ssztautaucontrolvbf","antiisotauztautaucontrolvbf","antiisotauztautaucontrolgg0","antiisotauztautaucontrolgg1"]
+        names=["gg0","gg1","vbf","highMtgg0","highMtgg1","highMtvbf", "hightMtvbf","lowtMtvbf","antiisomuongg0","antiisomuongg1","antiisomuonvbf","highMtantiisomuonvbf","antiisotaugg0","antiisotaugg1","antiisotauvbf","antiisotauvbfdown","antiisotauvbfup","highMtssantiisotauvbf","highMtssantiisotauvbfdown","highMtssantiisotauvbfup","antiisotauhighMtvbf","highMtssantiisomuonvbf","ssgg0","antiisotaussgg0","ssgg1","antiisotaussgg1","highMtssgg0", "highMtssgg1","ssvbf","antiisotaussvbf","highMtssvbf", "ssantiisomuongg0", "ssantiisomuongg1", "ssantiisomuonvbf", "ssantiisomuonlowmMtvbf","sslowmMtvbf","lowmMtvbf","ttbarcontrolvbf","ztautaucontrolvbf","ztautaucontrolgg0","ztautaucontrolgg1","highMtztautaucontrolvbf","antiisomuonztautaucontrolvbf","highMtssztautaucontrolvbf","ssantiisomuonztautaucontrolvbf","ssztautaucontrolvbf","antiisotauztautaucontrolvbf","antiisotauztautaucontrolgg0","antiisotauztautaucontrolgg1"]
         namesize = len(names)
 	for x in range(0,namesize):
 
@@ -879,6 +879,9 @@ class AnalyzeMuTauTightvbfNewpfMet(MegaBase):
 				self.fill_histos(row, 'antiisotaugg0',True)
                                 if self.lowm_t_DR(row):
                                         self.fill_histos(row,'antiisotauztautaucontrolgg0',True)
+                        if obj1iso and self.obj2_antiiso(row) and not self.oppositesign(row):
+                                self.fill_histos(row, 'antiisotaussgg0',True,'Central')
+
 		if self.highMt(row):
                         if obj1iso and obj2isogg and self.oppositesign(row):
                                 self.fill_histos(row,'highMtgg0')
@@ -901,6 +904,9 @@ class AnalyzeMuTauTightvbfNewpfMet(MegaBase):
                                 self.fill_histos(row, 'antiisotaugg1',True)
                                 if self.lowm_t_DR(row):
                                         self.fill_histos(row,'antiisotauztautaucontrolgg1',True)
+                        if obj1iso and self.obj2_antiiso(row) and not self.oppositesign(row):
+                                self.fill_histos(row, 'antiisotaussgg1',True,'Central')
+
                 if self.highMt(row):
                         if obj1iso and obj2isogg and self.oppositesign(row):
                                 self.fill_histos(row,'highMtgg1')
@@ -956,6 +962,9 @@ class AnalyzeMuTauTightvbfNewpfMet(MegaBase):
 				self.fill_histos(row, 'antiisotauvbfup',True,'Up')
                                 if self.lowm_t_DR(row):
                                         self.fill_histos(row,'antiisotauztautaucontrolvbf',True)
+                        if obj1iso and self.obj2_antiiso(row) and not self.oppositesign(row):
+                                self.fill_histos(row, 'antiisotaussvbf',True,'Central')
+
 
 		if self.highMt(row):
                         if obj1iso and obj2iso and self.oppositesign(row):
