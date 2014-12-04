@@ -378,6 +378,7 @@ class AnalyzeMuTauTightvbfNewpfMet(MegaBase):
     def begin(self):
 
         names=["gg0","gg1","vbf","highMtgg0","highMtgg1","highMtvbf", "hightMtvbf","lowtMtvbf","antiisomuongg0","antiisomuongg1","antiisomuonvbf","highMtantiisomuonvbf","antiisotaugg0","antiisotaugg1","antiisotauvbf","antiisotauvbfdown","antiisotauvbfup","highMtssantiisotauvbf","highMtssantiisotauvbfdown","highMtssantiisotauvbfup","antiisotauhighMtvbf","highMtssantiisomuonvbf","ssgg0","antiisotaussgg0","ssgg1","antiisotaussgg1","highMtssgg0", "highMtssgg1","ssvbf","antiisotaussvbf","highMtssvbf", "ssantiisomuongg0", "ssantiisomuongg1", "ssantiisomuonvbf", "ssantiisomuonlowmMtvbf","sslowmMtvbf","lowmMtvbf","ttbarcontrolvbf","ztautaucontrolvbf","ztautaucontrolgg0","ztautaucontrolgg1","highMtztautaucontrolvbf","antiisomuonztautaucontrolvbf","highMtssztautaucontrolvbf","ssantiisomuonztautaucontrolvbf","ssztautaucontrolvbf","antiisotauztautaucontrolvbf","antiisotauztautaucontrolgg0","antiisotauztautaucontrolgg1"]
+        #names=["gtTest"] #one name with no cuts applied, used to test global tag.
         namesize = len(names)
 	for x in range(0,namesize):
 
@@ -830,6 +831,7 @@ class AnalyzeMuTauTightvbfNewpfMet(MegaBase):
 		return True
     def process(self):
         for row in self.tree:
+	    
 	    if Isiso == False:
 		obj1iso = True
 		obj2iso = True
@@ -1000,6 +1002,8 @@ class AnalyzeMuTauTightvbfNewpfMet(MegaBase):
                 if self.lowtMt(row):
                         if obj1iso and obj2iso and self.oppositesign(row):
                                 self.fill_histos(row,'lowtMtvbf')
+            
+            self.fill_histos(row,'gtTest')
 
 
 
