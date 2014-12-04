@@ -1003,7 +1003,7 @@ class AnalyzeMuTauTightvbfNewpfMet(MegaBase):
                         if obj1iso and obj2iso and self.oppositesign(row):
                                 self.fill_histos(row,'lowtMtvbf')
             
-            self.fill_histos(row,'gtTest')
+            #self.fill_histos(row,'gtTest') only when applying no cuts
 
 
 
