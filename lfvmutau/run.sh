@@ -13,7 +13,7 @@ export otherJets=false
 export ZjetsM50=false
 export treeSkim=false
 export jetcorrection=""
-export jobid=MuTauSingleMuJetReReco
+export jobid=SingleMu
 #export jobid=MuTauSingleMuJetReRecoJes
 #export jobid=dataJes
 export PU=true
@@ -35,10 +35,13 @@ export ZjetsM50=true
 #rake mttightZjetsM50
 export otherJets=true
 #rake mttightotherM50
+#rake mttightZjetsM50
 export ZjetsM50=false
 #rake mttightotherDY
+#rake DYmttight
 export Ztt=false
-#rake dataonnlymttight
+#rake dataonlymttightpfmet
+#rake dataonlymttight
 #rake mttight
 #rake mttightRedoFakes
 #rake mttightsingletop
@@ -54,7 +57,6 @@ export otherJets=false
 export ZjetsM50=false
 export treeSkim=false
 export jetcorrection=""
-export jobid=MuTauSingleMuJetReReco
 #export jobid=MuTauSingleMuJetReRecoJes
 #export jobid=dataJes
 export PU=true
@@ -79,7 +81,8 @@ export otherJets=true
 export ZjetsM50=false
 #rake mttightotherDY
 export Ztt=false
-rake dataonlymttight
+#rake mttightextra
+rake dataonlymttightpfmet
 #rake mttight
 #rake mttightHWW 
 #rake dataonlymttight
