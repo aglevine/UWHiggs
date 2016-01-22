@@ -10,7 +10,7 @@ import MuTauTree
 from FinalStateAnalysis.PlotTools.MegaBase import MegaBase
 import glob
 import os
-#import FinalStateAnalysis.TagAndProbe.MuonPOGCorrections as MuonPOGCorrections
+import FinalStateAnalysis.TagAndProbe.MuonPOGCorrections as MuonPOGCorrections
 #import FinalStateAnalysis.TagAndProbe.H2TauCorrections as H2TauCorrections
 import FinalStateAnalysis.TagAndProbe.PileupWeight as PileupWeight
 import ROOT
@@ -219,10 +219,21 @@ pu_distributions = glob.glob(os.path.join(
 
 pu_corrector = PileupWeight.PileupWeight('Asympt25ns', *pu_distributions)
 
+muon_pog_PFTight_2015 = MuonPOGCorrections.make_muon_pog_PFTight_2015CD()
+muon_pog_TightIso_2015 = MuonPOGCorrections.make_muon_pog_TightIso_2015CD()
+muon_pog_IsoMu20oIsoTkMu20_2015 = MuonPOGCorrections.make_muon_pog_IsoMu20oIsoTkMu20_2015()
+
 def mc_corrector_2015(row):
 	pu = pu_corrector(row.nTruePU)
         
-        return pu
+
+	m1id = muon_pog_PFTight_2015(row.mPt,row.mEta)
+  	m1iso = muon_pog_TightIso_2015('Tight',row.mPt,row.mEta)
+	m_trg = muon_pog_IsoMu20oIsoTkMu20_2015(row.mPt,row.mEta)
+	#print "pu"
+	#print str(pu)
+	#print str(m1id*m1iso*m_trg)
+        return pu*m1id*m1iso*m_trg
 
 mc_corrector = mc_corrector_2015
 
@@ -562,13 +573,13 @@ class AnalyzeLFVMuTau(MegaBase):
         return True
 
     def kinematics(self, row):
-        if row.mPt < 30:
+        if row.mPt < 25:
             return False
-        if abs(row.mEta) >= 2.1:
+        if abs(row.mEta) >= 2.4:
             return False
         if row.tPt<30 :
             return False
-        if abs(row.tEta)>=2.5 :
+        if abs(row.tEta)>=2.3:
             return False
         return True
 

@@ -12,12 +12,13 @@ export datasrc=/hdfs/store/user/aglevine/
 #export jobid=MiniAODSIM-Spring15-25ns_LFV_MiniAODV2_Dec2_Data_NoHF_JetEta
 #export jobid=MiniAODSIM-Spring15-25ns_LFV_MiniAODV2_Dec2_LFV_NoHF_JetEta25_MissingHiggs
 #export jobid=MiniAodV2For25ns_ExtraJets_LFV_Data
-export jobid=MiniAodV2For25ns_ExtraJets_JesUes_LFV
+#export jobid=MiniAodV2For25ns_ExtraJets_JesUes_JetEtaFix_LFV
+export jobid=MiniAodV2For25ns_ExtraJets_JesUes_JetFix_LFVData
 #export jobid=MiniAODv2_2fb_v2
 #export jobid=MiniAODSIM-Spring15-25ns_LFV_MiniAODV2_Data
 #export jobid=MiniAODSIM-Spring15-25ns_LFV_Nov9_ZTTFakeStudy
 #export jobid=MiniAODSIM-Spring15-25ns_LFV_Oct27
-export afile=`find $datasrc/$jobid | grep root | head -n 1`
+#export afile=`find $datasrc/$jobid | grep root | head -n 1`
 
 ## Build the cython wrappers
 rake "make_wrapper[$afile, mt/final/Ntuple, MuTauTree]"
