@@ -626,9 +626,9 @@ class AnalyzeLFVMuTau(MegaBase):
             return False
 	if(getvbfNJets(row,systematic)<2):
 	    return False
-	if(abs(getvbfDeta(row,systematic))<3.5):
+	if(abs(getvbfDeta(row,systematic))<2.5):
 	    return False
-        if getvbfMass(row,systematic) < 550:
+        if getvbfMass(row,systematic) < 200:
 	    return False
         if getvbfJetVeto30(row,systematic) > 0:
             return False
