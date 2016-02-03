@@ -613,14 +613,16 @@ class AnalyzeLFVMuTau(MegaBase):
                 return False
           if row.tPt < 40:
                 return False
-          if gettMtToPfMet(row,systematic) > 50:
+          if gettMtToPfMet(row,systematic) > 35:
                 return False
           return True
 
     def vbf(self,row):
         if row.tPt < 40:
                 return False
-        if gettMtToPfMet(row,systematic) > 50:
+        if row.mPt < 40:
+		return False
+        if gettMtToPfMet(row,systematic) > 35:
                 return False
         if getjetVeto30Eta3(row,systematic)<2:
             return False
