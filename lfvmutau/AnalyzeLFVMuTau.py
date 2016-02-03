@@ -585,7 +585,7 @@ class AnalyzeLFVMuTau(MegaBase):
     def kinematics(self, row):
         if row.mPt < 25:
             return False
-        if abs(row.mEta) >= 2.4:
+        if abs(row.mEta) >= 2.1:
             return False
         if row.tPt<30 :
             return False
