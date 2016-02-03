@@ -602,12 +602,12 @@ class AnalyzeLFVMuTau(MegaBase):
            return False
        if gettMtToPfMet(row,systematic) > 50:
            return False
-       if getjetVeto30(row,systematic)!=0:
+       if getjetVeto30Eta3(row,systematic)!=0:
            return False
        return True
 
     def boost(self,row):
-          if getjetVeto30(row,systematic)!=1:
+          if getjetVeto30Eta3(row,systematic)!=1:
             return False
           if row.mPt < 35:
                 return False
@@ -622,7 +622,7 @@ class AnalyzeLFVMuTau(MegaBase):
                 return False
         if gettMtToPfMet(row,systematic) > 50:
                 return False
-        if getjetVeto30(row,systematic)<2:
+        if getjetVeto30Eta3(row,systematic)<2:
             return False
 	if(getvbfNJets(row,systematic)<2):
 	    return False
@@ -723,11 +723,11 @@ class AnalyzeLFVMuTau(MegaBase):
             if self.obj2_iso(row) and self.oppositesign(row):  
 
               self.fill_histos(row,'preselection',False)
-              if getjetVeto30(row,systematic)==0:
+              if getjetVeto30Eta3(row,systematic)==0:
                 self.fill_histos(row,'preselection0Jet',False)
-              if getjetVeto30(row,systematic)==1:
+              if getjetVeto30Eta3(row,systematic)==1:
                 self.fill_histos(row,'preselection1Jet',False)
-              if getjetVeto30(row,systematic)==2:
+              if getjetVeto30Eta3(row,systematic)==2:
                 self.fill_histos(row,'preselection2Jet',False)
 
               if self.gg(row):
@@ -743,11 +743,11 @@ class AnalyzeLFVMuTau(MegaBase):
               self.fill_histos(row,'notIso',True)
               self.fill_histos(row,'notIsoNotWeighted',False)
 
-              if getjetVeto30(row,systematic)==0:
+              if getjetVeto30Eta3(row,systematic)==0:
                 self.fill_histos(row,'notIso0Jet',True)
-              if getjetVeto30(row,systematic)==1:
+              if getjetVeto30Eta3(row,systematic)==1:
                 self.fill_histos(row,'notIso1Jet',True)
-              if getjetVeto30(row,systematic)==2:
+              if getjetVeto30Eta3(row,systematic)==2:
                 self.fill_histos(row,'notIso2Jet',True)
 
               if self.gg(row):
