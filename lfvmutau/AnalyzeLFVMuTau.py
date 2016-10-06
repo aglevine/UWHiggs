@@ -241,29 +241,20 @@ def getvbfJetVeto30(row,sys='none'):
                 return row.vbfJetVeto30_JetEnUp
 '''
 
-def getFakeRateFactor(row, isoName):
-  if (isoName == "old"):
-    if (row.tEta < 1.5):
-      if (row.tDecayMode==0):
-        fTauIso = 0.390
-      elif (row.tDecayMode==1):
-        fTauIso = 0.433
-      elif (row.tDecayMode==10):
-        fTauIso = 0.357
-    if (row.tEta >= 1.5):
-      if (row.tDecayMode==0):
-        fTauIso = 0.409
-      elif (row.tDecayMode==1):
-        fTauIso = 0.447
-      elif (row.tDecayMode==10):
-        fTauIso = 0.352
-  
-  #if (row.tDecayMode==0):
-  #  fTauIso = 0.389
-  #elif (row.tDecayMode==1):
-  #  fTauIso = 0.447
-  #elif (row.tDecayMode==10):
-  #  fTauIso = 0.353
+def getFakeRateFactor(row):
+  if (row.tDecayMode==0):
+    #fTauIso = 0.369
+    #fTauIso = 0.4018+- 0.0013*row.Eta + 0.0269*row.Eta*row.Eta +0.0034*row.Eta*row.Eta*row.Eta -0.0018*row.Eta*row.Eta*row.Eta*row.Eta
+     fTauIso = 0.2340 - 0.0063*row.Eta + 0.0248*row.Eta*row.Eta +0.0043*row.Eta*row.Eta*row.Eta -0.0013*row.Eta*row.Eta*row.Eta*row.Eta
+
+  elif (row.tDecayMode==1):
+    #fTauIso = 0.350
+    # fTauIso = 0.3955+ 0.0077*row.Eta + 0.0362*row.Eta*row.Eta -0.0007*row.Eta*row.Eta*row.Eta -0.0069*row.Eta*row.Eta*row.Eta*row.Eta
+     fTauIso = 0.2196+ 0.0039*row.Eta + 0.0395*row.Eta*row.Eta -0.0001*row.Eta*row.Eta*row.Eta -0.0066*row.Eta*row.Eta*row.Eta*row.Eta
+  elif (row.tDecayMode==10):
+    #fTauIso = 0.356
+    #fTauIso = 0.3522- 0.0182*row.Eta - 0.0358*row.Eta*row.Eta +0.0059*row.Eta*row.Eta*row.Eta +0.0098*row.Eta*row.Eta*row.Eta*row.Eta
+    fTauIso = 0.1643- 0.0049*row.Eta - 0.0166*row.Eta*row.Eta +0.0029*row.Eta*row.Eta*row.Eta +0.0059*row.Eta*row.Eta*row.Eta*row.Eta
   fakeRateFactor = fTauIso/(1.0-fTauIso)
   return fakeRateFactor
 ################################################################################
@@ -272,24 +263,24 @@ def getFakeRateFactor(row, isoName):
 pu_distributions = glob.glob(os.path.join(
 #    'inputs', os.environ['jobid'], 'data_TauPlusX*pu.root'))
         'inputs', os.environ['jobid'], 'data_SingleMu*pu.root'))
-pu_corrector = PileupWeight.PileupWeight('25ns_matchData', *pu_distributions)
+pu_corrector = PileupWeight.PileupWeight('MC_Spring16', *pu_distributions)
 
-muon_pog_PFTight_2015 = MuonPOGCorrections.make_muon_pog_PFTight_2015CD()
-muon_pog_TightIso_2015 = MuonPOGCorrections.make_muon_pog_TightIso_2015CD()
-muon_pog_IsoMu20oIsoTkMu20_2015 = MuonPOGCorrections.make_muon_pog_IsoMu20oIsoTkMu20_2015()
+muon_pog_PFTight_2016 = MuonPOGCorrections.make_muon_pog_PFTight_2016BCD()
+muon_pog_TightIso_2016 = MuonPOGCorrections.make_muon_pog_TightIso_2016BCD()
+muon_pog_IsoMu22oIsoTkMu22_2016 = MuonPOGCorrections.make_muon_pog_IsoMu22oIsoTkMu22_2016BCD()
 
-def mc_corrector_2015(row):
+def mc_corrector_2016(row):
   pu = pu_corrector(row.nTruePU)
 
-  m1id = muon_pog_PFTight_2015(row.mPt,abs(row.mEta))
-  m1iso = muon_pog_TightIso_2015('Tight',row.mPt,abs(row.mEta))
-  m_trg = muon_pog_IsoMu20oIsoTkMu20_2015(row.mPt,abs(row.mEta))
+  m1id = muon_pog_PFTight_2016(row.mPt,abs(row.mEta))
+  m1iso = muon_pog_TightIso_2016('Tight',row.mPt,abs(row.mEta))
+  m_trg = muon_pog_IsoMu22oIsoTkMu22_2016(row.mPt,abs(row.mEta))
 
   #print "pu"
   #print str(pu)
   return pu*m1id*m1iso*m_trg
 
-mc_corrector = mc_corrector_2015
+mc_corrector = mc_corrector_2016
 
 class AnalyzeLFVMuTau(MegaBase):
     tree = 'mt/final/Ntuple'
@@ -318,26 +309,6 @@ class AnalyzeLFVMuTau(MegaBase):
             self.book(names[x], "nvtx", "Number of vertices", 100, -0.5, 100.5)
             self.book(names[x], "prescale", "HLT prescale", 21, -0.5, 20.5)
 
-   
-            self.book(names[x], "jet1Pt", "", 300,0,300)
-            self.book(names[x], "jet2Pt", "", 300,0,300)
-            self.book(names[x], "jet3Pt", "", 300,0,300)
-            self.book(names[x], "jet4Pt", "", 300,0,300)
-            self.book(names[x], "jet5Pt", "", 300,0,300)
-
-
-            self.book(names[x], "jet1Eta", "", 200,-5,5)
-            self.book(names[x], "jet2Eta", "", 200,-5,5)
-            self.book(names[x], "jet3Eta", "", 200,-5,5)
-            self.book(names[x], "jet4Eta", "", 200,-5,5)
-            self.book(names[x], "jet5Eta", "", 200,-5,5)
-
-            self.book(names[x], "jet1Phi", "", 280,-7,7)
-            self.book(names[x], "jet2Phi", "", 280,-7,7)
-            self.book(names[x], "jet3Phi", "", 280,-7,7)
-            self.book(names[x], "jet4Phi", "", 280,-7,7)
-            self.book(names[x], "jet5Phi", "", 280,-7,7)
- 
             self.book(names[x], "mPt", "Muon  Pt", 300,0,300)
             self.book(names[x], "mEta", "Muon  eta", 100, -2.5, 2.5)
             self.book(names[x], "mMtToPfMet_type1", "Muon MT (PF Ty1)", 200, 0, 200)
@@ -352,14 +323,6 @@ class AnalyzeLFVMuTau(MegaBase):
             self.book(names[x], "tLeadTrackPt", "Tau  LeadTrackPt", 300,0,300)
 
 		       
-            #self.book(names[x], "tAgainstElectronLoose", "tAgainstElectronLoose", 2,-0.5,1.5)
-            self.book(names[x], "tAgainstElectronLooseMVA5", "tAgainstElectronLooseMVA5", 2,-0.5,1.5)
-            #self.book(names[x], "tAgainstElectronMedium", "tAgainstElectronMedium", 2,-0.5,1.5)
-            self.book(names[x], "tAgainstElectronMediumMVA5", "tAgainstElectronMediumMVA5", 2,-0.5,1.5)
-            #self.book(names[x], "tAgainstElectronTight", "tAgainstElectronTight", 2,-0.5,1.5)
-            self.book(names[x], "tAgainstElectronTightMVA5", "tAgainstElectronTightMVA5", 2,-0.5,1.5)
-            self.book(names[x], "tAgainstElectronVTightMVA5", "tAgainstElectronVTightMVA5", 2,-0.5,1.5)
-
 
             #self.book(names[x], "tAgainstMuonLoose", "tAgainstMuonLoose", 2,-0.5,1.5)
             self.book(names[x], "tAgainstMuonLoose3", "tAgainstMuonLoose3", 2,-0.5,1.5)
@@ -380,35 +343,13 @@ class AnalyzeLFVMuTau(MegaBase):
             self.book(names[x], "tByMediumCombinedIsolationDeltaBetaCorr3Hits", "tByMediumCombinedIsolationDeltaBetaCorr3Hits", 2,-0.5,1.5)
             self.book(names[x], "tByTightCombinedIsolationDeltaBetaCorr3Hits", "tByTightCombinedIsolationDeltaBetaCorr3Hits", 2,-0.5,1.5)
 
-            self.book(names[x], "tByLooseIsolationMVA3newDMwLT", "tByLooseIsolationMVA3newDMwLT", 2,-0.5,1.5)
-            self.book(names[x], "tByMediumIsolationMVA3newDMwLT", "tByMediumIsolationMVA3newDMwLT", 2,-0.5,1.5)
-            self.book(names[x], "tByTightIsolationMVA3newDMwLT", "tByTightIsolationMVA3newDMwLT", 2,-0.5,1.5)
-            self.book(names[x], "tByVTightIsolationMVA3newDMwLT", "tByVTightIsolationMVA3newDMwLT", 2,-0.5,1.5)
-            self.book(names[x], "tByVVTightIsolationMVA3newDMwLT", "tByVVTightIsolationMVA3newDMwLT", 2,-0.5,1.5)
-
-            self.book(names[x], "tByLooseIsolationMVA3oldDMwLT", "tByLooseIsolationMVA3oldDMwLT", 2,-0.5,1.5)
-            self.book(names[x], "tByMediumIsolationMVA3oldDMwLT", "tByMediumIsolationMVA3oldDMwLT", 2,-0.5,1.5)
-            self.book(names[x], "tByTightIsolationMVA3oldDMwLT", "tByTightIsolationMVA3oldDMwLT", 2,-0.5,1.5)
-            self.book(names[x], "tByVTightIsolationMVA3oldDMwLT", "tByVTightIsolationMVA3oldDMwLT", 2,-0.5,1.5)
-            self.book(names[x], "tByVVTightIsolationMVA3oldDMwLT", "tByVVTightIsolationMVA3oldDMwLT", 2,-0.5,1.5)
-
-            #self.book(names[x], "tByLooseIsolationMVA3newDMwoLT", "tByLooseIsolationMVA3newDMwoLT", 2,-0.5,1.5)
-            #self.book(names[x], "tByMediumIsolationMVA3newDMwoLT", "tByMediumIsolationMVA3newDMwoLT", 2,-0.5,1.5)
-            #self.book(names[x], "tByTightIsolationMVA3newDMwoLT", "tByTightIsolationMVA3newDMwoLT", 2,-0.5,1.5)
-            #self.book(names[x], "tByVTightIsolationMVA3newDMwoLT", "tByVTightIsolationMVA3newDMwoLT", 2,-0.5,1.5)
-            #self.book(names[x], "tByVVTightIsolationMVA3newDMwoLT", "tByVVTightIsolationMVA3newDMwoLT", 2,-0.5,1.5)
-   
-            #self.book(names[x], "tByLooseIsolationMVA3oldDMwoLT", "tByLooseIsolationMVA3oldDMwoLT", 2,-0.5,1.5)
-            #self.book(names[x], "tByMediumIsolationMVA3oldDMwoLT", "tByMediumIsolationMVA3oldDMwoLT", 2,-0.5,1.5)
-            #self.book(names[x], "tByTightIsolationMVA3oldDMwoLT", "tByTightIsolationMVA3oldDMwoLT", 2,-0.5,1.5)
-            #self.book(names[x], "tByVTightIsolationMVA3oldDMwoLT", "tByVTightIsolationMVA3oldDMwoLT", 2,-0.5,1.5)
-            #self.book(names[x], "tByVVTightIsolationMVA3oldDMwoLT", "tByVVTightIsolationMVA3oldDMwoLT", 2,-0.5,1.5)
-
             self.book(names[x], 'mPixHits', 'Mu 1 pix hits', 10, -0.5, 9.5)
             self.book(names[x], 'mJetBtag', 'Mu 1 JetBtag', 100, -5.5, 9.5)
     	  
             self.book(names[x],"collMass_type1_1","collMass_type1_1",500,0,500);
             self.book(names[x],"collMass_type1_2","collMass_type1_2",500,0,500);
+            
+            self.book(names[x],"mPtRatiocollMass_type1","mPt:collMass_type1",100,-0.5,4.5)
 
             self.book(names[x],"collMass_type1","collMass_type1",500,0,500);
             self.book(names[x],"fullMT_type1","fullMT_type1",500,0,500);
@@ -432,6 +373,7 @@ class AnalyzeLFVMuTau(MegaBase):
             #self.book(names[x], 'jetVeto30PUCleanedTight', 'Number of extra jets', 5, -0.5, 4.5)
             #self.book(names[x], 'jetVeto30PUCleanedLoose', 'Number of extra jets', 5, -0.5, 4.5)
             self.book(names[x], 'jetVeto30', 'Number of extra jets', 5, -0.5, 4.5)	
+            self.book(names[x], 'jetVeto30ZTT', 'Number of extra jets', 5, -0.5, 4.5)
             self.book(names[x], 'jetVeto30Eta3', 'Number of extra jets within |eta| < 3', 5, -0.5, 4.5)
 	    #Isolation
 	    self.book(names[x], 'mRelPFIsoDBDefault' ,'Muon Isolation', 100, 0.0,1.0)
@@ -447,6 +389,8 @@ class AnalyzeLFVMuTau(MegaBase):
 	    self.book(names[x], "vbfMVA", "", 100, 0,0.5)
 	    self.book(names[x], "vbfMass", "", 500,0,5000.0)
 	    self.book(names[x], "vbfDeta", "", 100, -0.5,10.0)
+            self.book(names[x], "vbfMassZTT", "", 500,0,5000.0)
+            self.book(names[x], "vbfDetaZTT", "", 100, -0.5,10.0)
             self.book(names[x], "vbfj1eta","",100,-2.5,2.5)
 	    self.book(names[x], "vbfj2eta","",100,-2.5,2.5)
 	    self.book(names[x], "vbfVispt","",100,0,200)
@@ -461,16 +405,16 @@ class AnalyzeLFVMuTau(MegaBase):
     def correction(self,row):
 	return mc_corrector(row)
 	
-    def fakeRateMethod(self,row,isoName):
-        return getFakeRateFactor(row,isoName)
+    def fakeRateMethod(self,row):
+        return getFakeRateFactor(row)
 	     
-    def fill_histos(self, row,name='gg', fakeRate=False, isoName="old"):
+    def fill_histos(self, row,name='gg', fakeRate=False):
         histos = self.histograms
         weight=1
         if (not(data)):
 	   weight = row.GenWeight * self.correction(row) #apply gen and pu reweighting to MC
         if (fakeRate == True):
-          weight=weight*self.fakeRateMethod(row,isoName) #apply fakerate method for given isolation definition
+          weight=weight*self.fakeRateMethod(row) #apply fakerate method for given isolation definition
 
 
         histos[name+'/weight'].Fill(weight)
@@ -480,22 +424,6 @@ class AnalyzeLFVMuTau(MegaBase):
         histos[name+'/nvtx'].Fill(row.nvtx, weight)
         histos[name+'/prescale'].Fill(row.doubleMuPrescale, weight)
 
-        
-        histos[name+'/jet1Pt'].Fill(row.jet1Pt, weight)
-        histos[name+'/jet2Pt'].Fill(row.jet2Pt, weight)
-        histos[name+'/jet3Pt'].Fill(row.jet3Pt, weight)
-        histos[name+'/jet4Pt'].Fill(row.jet4Pt, weight)
-        histos[name+'/jet5Pt'].Fill(row.jet5Pt, weight)
-        histos[name+'/jet1Eta'].Fill(row.jet1Eta, weight)
-        histos[name+'/jet2Eta'].Fill(row.jet2Eta, weight)
-        histos[name+'/jet3Eta'].Fill(row.jet3Eta, weight)
-        histos[name+'/jet4Eta'].Fill(row.jet4Eta, weight)
-        histos[name+'/jet5Eta'].Fill(row.jet5Eta, weight)
-        histos[name+'/jet1Phi'].Fill(row.jet1Phi, weight)
-        histos[name+'/jet2Phi'].Fill(row.jet2Phi, weight)
-        histos[name+'/jet3Phi'].Fill(row.jet3Phi, weight)
-        histos[name+'/jet4Phi'].Fill(row.jet4Phi, weight)
-        histos[name+'/jet5Phi'].Fill(row.jet5Phi, weight)
         
         histos[name+'/mPt'].Fill(row.mPt, weight)
         histos[name+'/mEta'].Fill(row.mEta, weight)
@@ -510,14 +438,6 @@ class AnalyzeLFVMuTau(MegaBase):
         histos[name+'/tMass'].Fill(row.tMass,weight)
         histos[name+'/tLeadTrackPt'].Fill(row.tLeadTrackPt,weight)
 		       
-        #histos[name+'/tAgainstElectronLoose'].Fill(row.tAgainstElectronLoose,weight)
-        histos[name+'/tAgainstElectronLooseMVA5'].Fill(row.tAgainstElectronLooseMVA5,weight)  
-        #histos[name+'/tAgainstElectronMedium'].Fill(row.tAgainstElectronMedium,weight)     
-        histos[name+'/tAgainstElectronMediumMVA5'].Fill(row.tAgainstElectronMediumMVA5,weight) 
-        #histos[name+'/tAgainstElectronTight'].Fill(row.tAgainstElectronTight,weight)      
-        histos[name+'/tAgainstElectronTightMVA5'].Fill(row.tAgainstElectronTightMVA5,weight)  
-        histos[name+'/tAgainstElectronVTightMVA5'].Fill(row.tAgainstElectronVTightMVA5,weight) 
-
 
         #histos[name+'/tAgainstMuonLoose'].Fill(row.tAgainstMuonLoose,weight)
         histos[name+'/tAgainstMuonLoose3'].Fill(row.tAgainstMuonLoose3,weight)
@@ -537,33 +457,11 @@ class AnalyzeLFVMuTau(MegaBase):
         histos[name+'/tByMediumCombinedIsolationDeltaBetaCorr3Hits'].Fill(row.tByMediumCombinedIsolationDeltaBetaCorr3Hits,weight)
         histos[name+'/tByTightCombinedIsolationDeltaBetaCorr3Hits'].Fill(row.tByTightCombinedIsolationDeltaBetaCorr3Hits,weight)
 
-        histos[name+'/tByLooseIsolationMVA3newDMwLT'].Fill(row.tByLooseIsolationMVA3newDMwLT,weight)
-        histos[name+'/tByMediumIsolationMVA3newDMwLT'].Fill(row.tByMediumIsolationMVA3newDMwLT,weight)
-        histos[name+'/tByTightIsolationMVA3newDMwLT'].Fill(row.tByTightIsolationMVA3newDMwLT,weight)
-        histos[name+'/tByVTightIsolationMVA3oldDMwLT'].Fill(row.tByVTightIsolationMVA3oldDMwLT,weight)
-        histos[name+'/tByVVTightIsolationMVA3oldDMwLT'].Fill(row.tByVVTightIsolationMVA3oldDMwLT,weight)
-
-        histos[name+'/tByLooseIsolationMVA3oldDMwLT'].Fill(row.tByLooseIsolationMVA3oldDMwLT,weight)
-        histos[name+'/tByMediumIsolationMVA3oldDMwLT'].Fill(row.tByMediumIsolationMVA3oldDMwLT,weight)
-        histos[name+'/tByTightIsolationMVA3oldDMwLT'].Fill(row.tByTightIsolationMVA3oldDMwLT,weight)
-        histos[name+'/tByVTightIsolationMVA3oldDMwLT'].Fill(row.tByVTightIsolationMVA3oldDMwLT,weight)
-        histos[name+'/tByVVTightIsolationMVA3oldDMwLT'].Fill(row.tByVVTightIsolationMVA3oldDMwLT,weight)
-
-        #histos[name+'/tByLooseIsolationMVA3newDMwoLT'].Fill(row.tByLooseIsolationMVA3newDMwoLT,weight)
-        #histos[name+'/tByMediumIsolationMVA3newDMwoLT'].Fill(row.tByMediumIsolationMVA3newDMwoLT,weight)
-        #histos[name+'/tByTightIsolationMVA3newDMwoLT'].Fill(row.tByTightIsolationMVA3newDMwoLT,weight)
-        #histos[name+'/tByVTightIsolationMVA3newDMwoLT'].Fill(row.tByVTightIsolationMVA3newDMwoLT,weight)
-        #histos[name+'/tByVVTightIsolationMVA3newDMwoLT'].Fill(row.tByVVTightIsolationMVA3newDMwoLT,weight)
-   
-        #histos[name+'/tByLooseIsolationMVA3oldDMwoLT'].Fill(row.tByLooseIsolationMVA3oldDMwoLT,weight)
-        #histos[name+'/tByMediumIsolationMVA3oldDMwoLT'].Fill(row.tByMediumIsolationMVA3oldDMwoLT,weight)
-        #histos[name+'/tByTightIsolationMVA3oldDMwoLT'].Fill(row.tByTightIsolationMVA3oldDMwoLT,weight)
-        #histos[name+'/tByVTightIsolationMVA3oldDMwoLT'].Fill(row.tByVTightIsolationMVA3oldDMwoLT,weight)
-        #histos[name+'/tByVVTightIsolationMVA3oldDMwoLT'].Fill(row.tByVVTightIsolationMVA3oldDMwoLT,weight)
 
 	histos[name+'/LT'].Fill(row.LT,weight)
 
         histos[name+'/collMass_type1'].Fill(row.m_t_collinearmass,weight)
+        histos[name+'/mPtRatiocollMass_type1'].Fill(row.mPt/row.m_t_collinearmass,weight)
 
         #histos[name+'/collMass_type1'].Fill(collMass_type1(row, systematic),weight)
         histos[name+'/fullMT_type1'].Fill(fullMT(row.mPt,row.tPt, row.mPhi, row.tPhi, row, systematic),weight)
@@ -586,6 +484,7 @@ class AnalyzeLFVMuTau(MegaBase):
         histos[name+'/tauVetoPt20Loose3HitsVtx'].Fill(row.tauVetoPt20Loose3HitsVtx, weight)
         histos[name+'/eVetoMVAIso'].Fill(row.eVetoMVAIso, weight)
         histos[name+'/jetVeto30'].Fill(row.jetVeto30, weight)
+	histos[name+'/jetVeto30ZTT'].Fill(row.jetVeto30ZTT,weight)
         histos[name+'/jetVeto30Eta3'].Fill(row.jetVeto30Eta3,weight)
         #histos[name+'/jetVeto30PUCleanedLoose'].Fill(row.jetVeto30PUCleanedLoose, weight)
         #histos[name+'/jetVeto30PUCleanedTight'].Fill(row.jetVeto30PUCleanedTight, weight)
@@ -601,6 +500,8 @@ class AnalyzeLFVMuTau(MegaBase):
         #histos[name+'/vbfMVA'].Fill(row.vbfMVA, weight)
         histos[name+'/vbfMass'].Fill(row.vbfMass, weight)
         histos[name+'/vbfDeta'].Fill(row.vbfDeta, weight)
+        histos[name+'/vbfMassZTT'].Fill(row.vbfMassZTT, weight)
+        histos[name+'/vbfDetaZTT'].Fill(row.vbfDetaZTT, weight)
         #histos[name+'/vbfj1eta'].Fill(row.vbfj1eta, weight)
         #histos[name+'/vbfj2eta'].Fill(row.vbfj2eta, weight)
         #histos[name+'/vbfVispt'].Fill(row.vbfVispt, weight)
@@ -616,7 +517,7 @@ class AnalyzeLFVMuTau(MegaBase):
 
 
     def presel(self, row):
-        if not (row.singleIsoMu20Pass or row.singleIsoTkMu20Pass):
+        if not (row.singleIsoMu22Pass or row.singleIsoTkMu22Pass):
             return False
         return True
 
@@ -644,47 +545,72 @@ class AnalyzeLFVMuTau(MegaBase):
         return True
 
     def gg(self,row):
-       if row.mPt < 45:    
+       if row.mPt < 25:    
            return False
        if deltaPhi(row.mPhi, row.tPhi) <2.7:
            return False
-       if row.tPt < 35:
+       if deltaPhi(row.tPhi,row.type1_pfMetPhi) > 3.0:
+	   return False
+       if row.tPt < 30:
            return False
-       if row.tMtToPfMet_type1 > 50:
+       if row.tMtToPfMet_type1 > 75:
            return False
-       if row.jetVeto30!=0:
+       if row.jetVeto30ZTT!=0:
            return False
        return True
 
     def boost(self,row):
-          if row.jetVeto30!=1:
+          if row.jetVeto30ZTT!=1:
             return False
-          if row.mPt < 35:
+          if row.mPt < 25:
                 return False
-          if row.tPt < 40:
+          if row.tPt < 30:
                 return False
-          if row.tMtToPfMet_type1 > 35:
+          if row.tMtToPfMet_type1 > 105:
                 return False
+          if deltaPhi(row.tPhi,row.type1_pfMetPhi) > 3.0:
+                return False
+
           return True
 
-    def vbf(self,row):
-        if row.tPt < 40:
+    def vbfAntiTight(self,row):
+        if row.tPt < 30:
                 return False
-        if row.mPt < 40:
+        if row.mPt < 25:
 		return False
-        if row.tMtToPfMet_type1 > 35:
+        if row.tMtToPfMet_type1 > 75:
                 return False
-        if row.jetVeto30<2:
+        if row.jetVeto30ZTT < 2:
             return False
 	if(row.vbfNJets<2):
 	    return False
-	if(abs(row.vbfDeta)<2.5):
+	if(abs(row.vbfDetaZTT)>3.5):
 	    return False
-        if row.vbfMass < 200:
+        if row.vbfMassZTT > 500:
 	    return False
         if row.vbfJetVeto30 > 0:
             return False
         return True
+
+    def vbf(self,row):
+        if row.tPt < 30:
+                return False
+        if row.mPt < 25:
+                return False
+        if row.tMtToPfMet_type1 > 75:
+                return False
+        if row.jetVeto30ZTT < 2:
+            return False
+        if(row.vbfNJets<2):
+            return False
+        if(abs(row.vbfDetaZTT)<3.2):
+            return False
+        if row.vbfMassZTT < 500:
+            return False
+        if row.vbfJetVeto30 > 0:
+            return False
+        return True
+
 
     def oppositesign(self,row):
 	if row.mCharge*row.tCharge!=-1:
@@ -695,13 +621,17 @@ class AnalyzeLFVMuTau(MegaBase):
     #    return bool(row.mPFIDTight)  
  
     def obj1_id(self,row):
-    	 return row.mIsGlobal and row.mIsPFMuon and (row.mNormTrkChi2<10) and (row.mMuonHits > 0) and (row.mMatchedStations > 1) and (row.mPVDXY < 0.02) and (row.mPVDZ < 0.5) and (row.mPixHits > 0) and (row.mTkLayersWithMeasurement > 5)
+	 if (row.mIsGlobal and (row.mNormalizedChi2 < 3) and (row.mChi2LocalPosition < 12) and (row.mTrkKink < 20)):
+		goodGlobal=True
+	 else:
+		goodGlobal=False
+    	 return row.mPFIDLoose and row.mValidFraction > 0.49 and ((goodGlobal and row.mSegmentCompatibility > 0.303) or row.mSegmentCompatibility > 0.451)
 
     def obj2_id(self, row):
-	return  row.tAgainstElectronMediumMVA5 and row.tAgainstMuonTight3 and row.tDecayModeFinding
+	return  row.tAgainstElectronLooseMVA6 and row.tAgainstMuonTight3 and row.tDecayModeFinding
 
     def vetos(self,row):
-		return  (bool (row.muVetoPt5IsoIdVtx<1) and bool (row.eVetoMVAIso<1) and bool (row.tauVetoPt20Loose3HitsVtx<1) )
+		return  ((row.eVetoZTTp001dxyzR0 == 0) and (row.dimuonVeto==0) and (row.muVetoZTTp001dxyzR0 < 2) and (row.tauVetoPt20Loose3HitsVtx<1) )
 
     #def obj1_iso(self, row):
     #    return bool(row.mRelPFIsoDBDefault <0.12)
@@ -709,8 +639,11 @@ class AnalyzeLFVMuTau(MegaBase):
     def obj1_iso(self,row):
          return bool(row.mRelPFIsoDBDefault <0.15)
 
-    def obj2_iso(self, row):
-        return  row.tByTightCombinedIsolationDeltaBetaCorr3Hits
+    def obj2_iso(self,row):
+         return bool(row.tByTightIsolationMVArun2v1PWoldDMwLT)
+
+    #def obj2_iso(self, row):
+    #    return  row.tByTightCombinedIsolationDeltaBetaCorr3Hits
 
     def obj2_mediso(self, row):
 	 return row.tByMediumCombinedIsolationDeltaBetaCorr3Hits
@@ -739,7 +672,7 @@ class AnalyzeLFVMuTau(MegaBase):
             if sel==True:
                 continue
 
-            if not self.presel(row):
+            if data and not self.presel(row): #only apply trigger selections for data
                 continue
             if not self.selectZtt(row):
                 continue
@@ -774,11 +707,11 @@ class AnalyzeLFVMuTau(MegaBase):
             if self.obj2_iso(row) and self.oppositesign(row):  
 
               self.fill_histos(row,'preselection',False)
-              if row.jetVeto30==0:
+              if row.jetVeto30ZTT==0:
                 self.fill_histos(row,'preselection0Jet',False)
-              if row.jetVeto30==1:
+              if row.jetVeto30ZTT==1:
                 self.fill_histos(row,'preselection1Jet',False)
-              if row.jetVeto30==2:
+              if row.jetVeto30ZTT==2:
                 self.fill_histos(row,'preselection2Jet',False)
 
               if self.gg(row):
@@ -794,11 +727,11 @@ class AnalyzeLFVMuTau(MegaBase):
               self.fill_histos(row,'notIso',True)
               self.fill_histos(row,'notIsoNotWeighted',False)
 
-              if row.jetVeto30==0:
+              if row.jetVeto30ZTT==0:
                 self.fill_histos(row,'notIso0Jet',True)
-              if row.jetVeto30==1:
+              if row.jetVeto30ZTT==1:
                 self.fill_histos(row,'notIso1Jet',True)
-              if row.jetVeto30==2:
+              if row.jetVeto30ZTT==2:
                 self.fill_histos(row,'notIso2Jet',True)
 
               if self.gg(row):
