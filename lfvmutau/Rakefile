@@ -31,7 +31,7 @@ samples = Hash[
   "WJets" =>  get_sample_names('WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'),
   "DYZeroJets" =>  get_sample_names('DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'),
   "DYAmcJets" => Array['DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8'],
-  "DYJets" => Array['DY1JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','DY2JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','DY3JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','DY4JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'],
+  "DYJets" => Array['DY1JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','DY2JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','DY3JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','DY4JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'],
   "DYJetsRedo2To4" => Array['DY2JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','DY3JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','DY4JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'],
   "ZTauTauJets" => Array['ZTauTau1JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','ZTauTau2JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','ZTauTau3JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','ZTauTau4JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'],
   "ZTauTauJetsRedo2To4" => Array['ZTauTau2JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','ZTauTau3JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8','ZTauTau4JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8'],
@@ -42,7 +42,8 @@ samples = Hash[
   #"DiBoson" => Array['WWTo2L2Nu_13TeV-powheg','WZ_TuneCUETP8M1_13TeV-pythia8','ZZ_TuneCUETP8M1_13TeV-pythia8']
   "DiBoson" => Array['WW_TuneCUETP8M1_13TeV-pythia8','WZ_TuneCUETP8M1_13TeV-pythia8','ZZ_TuneCUETP8M1_13TeV-pythia8'],
   "Data2016C" => get_sample_names('data_SingleMuon_Run2016C'),
-  "Data2016D" => get_sample_names('data_SingleMuon_Run2016D')
+  "Data2016D" => get_sample_names('data_SingleMuon_Run2016D'),
+  "DataSingleE" =>get_sample_names('SingleElectron')
 ]
 
 # Function to get the .root files for an analyzer and samples
@@ -69,6 +70,9 @@ task :analyze2016WJets => get_analyzer_results("AnalyzeLFVMuTau.py",samples['WJe
 task :analyze2016ZJets => get_analyzer_results("AnalyzeLFVMuTau.py",samples['DYJets'])
 task :analyze2016mmtZJets => get_analyzer_results("AnalyzeLFVMuMuTau.py",samples['DYJets'])
 task :analyze2016eetZJets => get_analyzer_results("AnalyzeLFVEETau.py",samples['DYJets'])
+task :analyze2016eemZJets => get_analyzer_results("AnalyzeLFVEEMu.py",samples['DYJets'])
+task :analyze2016eemDiBoson => get_analyzer_results("AnalyzeLFVEEMu.py",samples['DiBoson'])
+task :analyze2016eemDataSingleE => get_analyzer_results("AnalyzeLFVEEMu.py",samples['DataSingleE'])
 task :analyze2016DYAmcJets => get_analyzer_results("AnalyzeLFVMuTau.py",samples['DYAmcJets'])
 task :analyze2016TTBar => get_analyzer_results("AnalyzeLFVMuTau.py",samples['TTBar'])
 task :analyze2016Higgs => get_analyzer_results("AnalyzeLFVMuTau.py",samples['HiggsGG']+samples['HiggsVBF'])

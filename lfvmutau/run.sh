@@ -11,8 +11,8 @@ set -o errexit
 #python MakeSysAnalyzers.py tesup
 
 export systematic=none
-#export jobid=LFV_sep16_v2
-export jobid=SMHTT_aug16_v2
+export jobid=LFV_sep16_v2
+#export jobid=SMHTT_aug16_v2
 export isRealData=false
 export isZTauTau=false
 export isInclusive=false
@@ -20,9 +20,11 @@ export isInclusive=false
 #rake analyzeSpring2015WJets
 #rake analyze2016mmtZJets
 #rake analyze2016eetZJets
+rake analyze2016eemZJets
+rake analyze2016eemDiBoson
 #rake analyzeSpring2015DYAmcJets
 #rake analyzeSpring2015TTBar
-rake analyze2016Higgs
+#rake analyze2016Higgs
 export isZTauTau=true
 #rake analyzeSpring2015ZTauTauJets
 export isIncluse=false
@@ -32,4 +34,4 @@ export isZTauTau=false
 export isInclusive=false
 export isRealData=true
 #rake analyzeLFVMuTauData
-
+rake analyze2016eemDataSingleE
