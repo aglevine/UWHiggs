@@ -283,15 +283,15 @@ class AnalyzeLFVMuMuMu(MegaBase):
 	return True
 
     def kinematics(self, row):
-        if row.m1Pt < 20:
+        if row.m1Pt < 30:
             return False
         if abs(row.m1Eta) >= 2.3:
             return False
-        if row.m2Pt < 20:
+        if row.m2Pt < 30:
             return False
         if abs(row.m2Eta) >= 2.3:
             return False
-        if row.m3Pt<20:
+        if row.m3Pt<30:
             return False
         if abs(row.m3Eta)>=2.3:
             return False
