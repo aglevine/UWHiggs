@@ -21,7 +21,7 @@ export isInclusive=false
 #rake analyze2016mmtZJets
 #rake analyze2016eetZJets
 rake analyze2016mmmZJets
-rake analyze2016mmmDiBoson
+#rake analyze2016mmmDiBoson
 #rake analyzeSpring2015DYAmcJets
 #rake analyzeSpring2015TTBar
 #rake analyze2016Higgs
@@ -34,4 +34,4 @@ export isZTauTau=false
 export isInclusive=false
 export isRealData=true
 #rake analyzeLFVMuTauData
-rake analyze2016mmmDataSingleMuon
+#rake analyze2016mmmDataSingleMuon

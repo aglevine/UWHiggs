@@ -402,7 +402,7 @@ class AnalyzeLFVMuMuMu(MegaBase):
          return row.m3PFIDLoose and row.m3ValidFraction > 0.49 and ((goodGlobal and row.m3SegmentCompatibility > 0.303) or row.m3SegmentCompatibility > 0.451)
 
     def vetos(self,row):
-		return  ((row.eVetoZTTp001dxyzR0 == 0) and (row.dimuonVeto==1) and (row.muVetoZTTp001dxyzR0 < 4) and (row.tauVetoPt20Loose3HitsVtx<1) )
+		return  ((row.eVetoZTTp001dxyzR0 == 0) and (row.muVetoZTTp001dxyzR0 < 4) and (row.tauVetoPt20Loose3HitsVtx<1) )
 
     #def obj1_iso(self, row):
     #    return bool(row.mRelPFIsoDBDefault <0.12)
@@ -415,7 +415,7 @@ class AnalyzeLFVMuMuMu(MegaBase):
 
 
     def obj2_looseiso(self,row):
-         return bool(row.m3RelPFIsoDBDefault < 1.0)
+         return bool(row.m3RelPFIsoDBDefault < 0.25)
 
 
 
