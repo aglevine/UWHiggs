@@ -431,8 +431,8 @@ class AnalyzeLFVMuMuMu(MegaBase):
 
             if data and not self.presel(row): #only apply trigger selections for data
                 continue
-            if not self.selectZtt(row):
-                continue
+            #if not self.selectZtt(row):
+#                continue
 
             if not self.kinematics(row): 
                 continue
