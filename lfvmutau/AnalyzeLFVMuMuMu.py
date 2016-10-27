@@ -74,7 +74,7 @@ class AnalyzeLFVMuMuMu(MegaBase):
 
     def begin(self):
 
-        names=["preselectionSS", "preselection","preselectionLooseIso"]
+        names=["preselectionSS", "preselection","preselectionLooseIso","preselectionVLooseIso"]
         namesize = len(names)
 	for x in range(0,namesize):
 
@@ -138,11 +138,10 @@ class AnalyzeLFVMuMuMu(MegaBase):
             self.book(names[x], 'm3RelPFIsoDBDefault' ,'Muon Isolation', 100, 0.0,1.0)
    
  
-            self.book(names[x], "m1PhiMm3Phi", "", 100, 0,4)
+            self.book(names[x], "m1Phim3Phi", "", 100, 0,4)
+            self.book(names[x], "m2Phim3Phi", "", 100, 0,4)
             self.book(names[x], "m1PhiMETPhiType1", "", 100, 0,4)
-            self.book(names[x], "m2PhiMm3Phi", "", 100, 0,4)
             self.book(names[x], "m2PhiMETPhiType1", "", 100, 0,4)
-            self.book(names[x], "m3PhiMm3Phi", "", 100, 0,4)
             self.book(names[x], "m3PhiMETPhiType1", "", 100, 0,4)
 
 ### vbf ###
@@ -193,9 +192,9 @@ class AnalyzeLFVMuMuMu(MegaBase):
         histos[name+'/m2Pt'].Fill(row.m2Pt, weight)
         histos[name+'/m2Eta'].Fill(row.m2Eta, weight)
         histos[name+'/m2Charge'].Fill(row.m2Charge, weight)
-        histos[name+'/m3Pt'].Fill(row.m2Pt, weight)
-        histos[name+'/m3Eta'].Fill(row.m2Eta, weight)
-        histos[name+'/m3Charge'].Fill(row.m2Charge, weight)
+        histos[name+'/m3Pt'].Fill(row.m3Pt, weight)
+        histos[name+'/m3Eta'].Fill(row.m3Eta, weight)
+        histos[name+'/m3Charge'].Fill(row.m3Charge, weight)
 
 
 	histos[name+'/LT'].Fill(row.LT,weight)
@@ -237,12 +236,10 @@ class AnalyzeLFVMuMuMu(MegaBase):
         histos[name+'/m2RelPFIsoDBDefault'].Fill(row.m2RelPFIsoDBDefault, weight)
         histos[name+'/m3RelPFIsoDBDefault'].Fill(row.m3RelPFIsoDBDefault, weight)
         
-	histos[name+'/m1PhiMm3Phi'].Fill(deltaPhi(row.m1Phi,row.m3Phi),weight)
+	histos[name+'/m1Phim3Phi'].Fill(deltaPhi(row.m1Phi,row.m3Phi),weight)
         histos[name+'/m1PhiMETPhiType1'].Fill(deltaPhi(row.m1Phi,row.type1_pfMetPhi),weight)
-        histos[name+'/m2PhiMm3Phi'].Fill(deltaPhi(row.m2Phi,row.m3Phi),weight)
+        histos[name+'/m2Phim3Phi'].Fill(deltaPhi(row.m2Phi,row.m3Phi),weight)
         histos[name+'/m2PhiMETPhiType1'].Fill(deltaPhi(row.m2Phi,row.type1_pfMetPhi),weight)
-        histos[name+'/m3PhiMm3Phi'].Fill(deltaPhi(row.m3Phi,row.m3Phi),weight)
-        histos[name+'/m3PhiMETPhiType1'].Fill(deltaPhi(row.m3Phi,row.type1_pfMetPhi),weight)
         histos[name+'/m3PhiMETPhiType1'].Fill(deltaPhi(row.m3Phi,row.type1_pfMetPhi),weight)
 	histos[name+'/vbfJetVeto30'].Fill(row.vbfJetVeto30, weight)
      	#histos[name+'/vbfJetVeto20'].Fill(row.vbfJetVeto20, weight)
@@ -283,84 +280,17 @@ class AnalyzeLFVMuMuMu(MegaBase):
 	return True
 
     def kinematics(self, row):
-        if row.m1Pt < 30:
+        if row.m1Pt < 20:
             return False
         if abs(row.m1Eta) >= 2.3:
             return False
-        if row.m2Pt < 30:
+        if row.m2Pt < 20:
             return False
         if abs(row.m2Eta) >= 2.3:
             return False
-        if row.m3Pt<30:
+        if row.m3Pt<10:
             return False
         if abs(row.m3Eta)>=2.3:
-            return False
-        return True
-
-    def gg(self,row):
-       if row.mPt < 25:    
-           return False
-       if deltaPhi(row.mPhi, row.tPhi) <2.7:
-           return False
-       if deltaPhi(row.tPhi,row.type1_pfMetPhi) > 3.0:
-	   return False
-       if row.tPt < 30:
-           return False
-       if row.tMtToPfMet_type1 > 75:
-           return False
-       if row.jetVeto30ZTT!=0:
-           return False
-       return True
-
-    def boost(self,row):
-          if row.jetVeto30ZTT!=1:
-            return False
-          if row.mPt < 25:
-                return False
-          if row.tPt < 30:
-                return False
-          if row.tMtToPfMet_type1 > 105:
-                return False
-          if deltaPhi(row.tPhi,row.type1_pfMetPhi) > 3.0:
-                return False
-
-          return True
-
-    def vbfAntiTight(self,row):
-        if row.tPt < 30:
-                return False
-        if row.mPt < 25:
-		return False
-        if row.tMtToPfMet_type1 > 75:
-                return False
-        if row.jetVeto30ZTT < 2:
-            return False
-	if(row.vbfNJets<2):
-	    return False
-	if(abs(row.vbfDetaZTT)>3.5):
-	    return False
-        if row.vbfMassZTT > 500:
-	    return False
-        if row.vbfJetVeto30 > 0:
-            return False
-        return True
-
-    def vbf(self,row):
-        if row.tPt < 30:
-                return False
-        if row.mPt < 25:
-                return False
-        if row.tMtToPfMet_type1 > 75:
-                return False
-        if row.jetVeto30ZTT < 2:
-            return False
-        if(row.vbfNJets<2):
-            return False
-        if(abs(row.vbfDetaZTT)<3.2):
-            return False
-        if row.vbfMassZTT < 500:
-            return False
-        if row.vbfJetVeto30 > 0:
             return False
         return True
 
@@ -384,8 +314,6 @@ class AnalyzeLFVMuMuMu(MegaBase):
                 goodGlobal2=False
     	 return ((row.m1PFIDLoose and row.m1ValidFraction > 0.49 and ((goodGlobal1 and row.m1SegmentCompatibility > 0.303) or row.m1SegmentCompatibility > 0.451)) and (row.m2PFIDLoose and row.m2ValidFraction > 0.49 and ((goodGlobal2 and row.m2SegmentCompatibility > 0.303) or row.m2SegmentCompatibility > 0.451)))
 
-    def obj1_id(self,row):
-         return (row.m1PixHits>0 and row.m2PixHits>0 and row.m1JetPFCISVBtag < 0.8 and row.m2JetPFCISVBtag < 0.8 and row.m1PVDZ < 0.2 and row.m2PVDZ < 0.2 and row.m1PFIDTight and row.m2PFIDTight)
 
     def m1m2Mass(self,row):
         if row.m1_m2_Mass < 70:
@@ -402,7 +330,7 @@ class AnalyzeLFVMuMuMu(MegaBase):
          return row.m3PFIDLoose and row.m3ValidFraction > 0.49 and ((goodGlobal and row.m3SegmentCompatibility > 0.303) or row.m3SegmentCompatibility > 0.451)
 
     def vetos(self,row):
-		return  ((row.eVetoZTTp001dxyzR0 == 0) and (row.muVetoZTTp001dxyzR0 < 4) and (row.tauVetoPt20Loose3HitsVtx<1) )
+		return  ((row.eVetoZTTp001dxyzR0 == 0) and (row.muVetoZTTp001dxyzR0 < 4) and (row.tauVetoPt20Loose3HitsVtx<1) and (row.dimuonVeto==1))
 
     #def obj1_iso(self, row):
     #    return bool(row.mRelPFIsoDBDefault <0.12)
@@ -416,6 +344,8 @@ class AnalyzeLFVMuMuMu(MegaBase):
 
     def obj2_looseiso(self,row):
          return bool(row.m3RelPFIsoDBDefault < 0.25)
+    def obj2_vlooseiso(self,row):
+         return bool(row.m3RelPFIsoDBDefault < 1.0)
 
 
 
@@ -459,6 +389,9 @@ class AnalyzeLFVMuMuMu(MegaBase):
  
             if self.obj2_looseiso(row) and self.oppositesign(row):
               self.fill_histos(row,'preselectionLooseIso',False)
+
+            if self.obj2_vlooseiso(row) and self.oppositesign(row):
+              self.fill_histos(row,'preselectionVLooseIso',False)
         
 
 
